@@ -60,6 +60,9 @@ coverage/
 htmlcov/
 .turbo/
 .cache/
+*.db
+*.sqlite
+
 
 # OS and Editor files
 .DS_Store

@@ -6,26 +6,31 @@ import { usePathname } from 'next/navigation';
 
 export const AppHeader: React.FC = () => {
   const pathname = usePathname();
-  if (pathname === '/login' || pathname === '/') return null;
   const [npuTops, setNpuTops] = useState<number>(45.2);
   const [maxTops] = useState<number>(80.0);
-  const [serviceStatus, setServiceStatus] = useState<{ genie: string; whisper: string }>({
+  const [serviceStatus, setServiceStatus] = useState<{ genie: string; whisper: string; serviceOnline: boolean }>({
     genie: 'Active',
     whisper: 'Ready',
+    serviceOnline: true,
   });
 
   useEffect(() => {
-    // Periodically fetch real hardware telemetry if local AI service is online
     const fetchTelemetry = async () => {
       try {
         const res = await fetch('http://127.0.0.1:8088/telemetry');
         if (res.ok) {
           const data = await res.json();
           if (data.npu_tops) setNpuTops(data.npu_tops);
-          if (data.genie_status) setServiceStatus({ genie: data.genie_status, whisper: data.whisper_status });
+          if (data.genie_status) {
+            setServiceStatus({
+              genie: data.genie_status || 'Active',
+              whisper: data.whisper_status || 'Ready',
+              serviceOnline: true,
+            });
+          }
         }
       } catch {
-        // AI service running in background / mock mode fallback
+        // Backend fallback
       }
     };
     fetchTelemetry();
@@ -33,10 +38,16 @@ export const AppHeader: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  if (pathname === '/' || pathname === '/login') return null;
+
   const navLinks = [
-    { name: 'Dashboard', href: '/dashboard', pathId: 'dashboard' },
-    { name: 'Game Coaching Report', href: '/gaming-coaching', pathId: 'gaming-coaching' },
-    { name: 'FPS Benchmark', href: '/benchmark', pathId: 'benchmark' },
+    { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+    { name: 'Live Session', href: '/live', icon: 'sensors' },
+    { name: 'Performance Doctor', href: '/performance', icon: 'medical_services' },
+    { name: 'Game Coaching', href: '/gaming-coaching', icon: 'sports_esports' },
+    { name: 'Player Memory', href: '/memory', icon: 'psychology' },
+    { name: 'FPS Benchmark', href: '/benchmark', icon: 'speed' },
+    { name: 'Settings', href: '/settings', icon: 'settings' },
   ];
 
   const isActive = (href: string) => {
@@ -49,7 +60,6 @@ export const AppHeader: React.FC = () => {
     try {
       await fetch('http://127.0.0.1:8088/overlay/launch', { method: 'POST' });
     } catch {
-      // IPC fallback via Electron context bridge if available
       if (typeof window !== 'undefined' && (window as unknown as { electronAPI?: { launchOverlay: () => void } }).electronAPI) {
         (window as unknown as { electronAPI: { launchOverlay: () => void } }).electronAPI.launchOverlay();
       }
@@ -67,7 +77,6 @@ export const AppHeader: React.FC = () => {
               alt="CogniEdge Brand Logo"
               className="h-8 w-auto object-contain transition-transform group-hover:scale-105"
               onError={(e) => {
-                // Fallback to embedded Stitch asset URL if local public asset isn't ready
                 (e.target as HTMLImageElement).src =
                   'https://lh3.googleusercontent.com/aida-public/AB6AXuAZQOQZaKpjFpi9Y46Vpa4fZwluFFElAyBcfKpB9SGgAZy9JtZ5pO-YZlnimXPKvJEAAdHJdSumxIsnpXLxX3jMi2cT6vOq6Rq6YfyqO5KPGoXZdzMCG8COlvSUUCimdU3bIZBLFl5K74QjLNb1OREVbPgfAPv4VeCAqsMMvjhOy9ygRVQXig2hszqViJKEpmU8hH60XoVpLRAKYvWBsAC8-8S2Vv6Z6JpnlTaKdL4v7Wu8YNKoxzgL';
               }}
@@ -82,11 +91,11 @@ export const AppHeader: React.FC = () => {
             </div>
           </Link>
 
-          <div className="hidden xl:flex items-center gap-space-xs px-space-sm py-1 bg-gaming-carbon text-gaming-slate border border-gaming-border rounded-full font-label-sm text-label-sm">
+          <div className="hidden 2xl:flex items-center gap-space-xs px-space-sm py-1 bg-gaming-carbon text-gaming-slate border border-gaming-border rounded-full font-label-sm text-label-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-gaming-red animate-ping" />
             <span className="text-gaming-white font-medium">100% On-Device</span>
             <span className="text-gaming-border">•</span>
-            <span>0 FPS GPU Drop</span>
+            <span>0 FPS Contention</span>
           </div>
         </div>
 
@@ -99,15 +108,16 @@ export const AppHeader: React.FC = () => {
             const active = isActive(link.href);
             return (
               <Link
-                key={link.pathId}
+                key={link.href}
                 href={link.href}
-                className={`font-headline-sm text-label-md px-space-sm py-1.5 transition-all whitespace-nowrap rounded-lg ${
+                className={`font-headline-sm text-label-md px-3 py-1.5 transition-all whitespace-nowrap rounded-lg flex items-center gap-1.5 ${
                   active
                     ? 'bg-gaming-red text-white font-bold shadow-[0_0_14px_rgba(255,0,56,0.5)]'
                     : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-panel-high'
                 }`}
               >
-                {link.name}
+                <span className="material-symbols-outlined text-[15px]">{link.icon}</span>
+                <span>{link.name}</span>
               </Link>
             );
           })}
@@ -125,7 +135,7 @@ export const AppHeader: React.FC = () => {
 
         {/* Real-Time Telemetry Stat Cluster */}
         <div className="flex items-center gap-space-md shrink-0">
-          <div className="hidden 2xl:flex items-center gap-space-sm bg-gaming-carbon px-space-sm py-1 rounded-xl border border-gaming-border">
+          <div className="hidden xl:flex items-center gap-space-sm bg-gaming-carbon px-space-sm py-1 rounded-xl border border-gaming-border">
             <div className="flex flex-col">
               <div className="flex items-center justify-between gap-space-sm font-label-sm text-label-sm font-mono">
                 <span className="text-gaming-slate">NPU TOPS</span>
@@ -151,18 +161,18 @@ export const AppHeader: React.FC = () => {
             </span>
           </div>
 
-          <button
-            aria-label="System Notifications & Alerts"
+          <Link
+            href="/settings"
+            aria-label="Settings"
             className="p-1.5 text-gaming-slate hover:text-gaming-white hover:bg-gaming-panel-high rounded-lg transition-colors border border-transparent hover:border-gaming-border"
-            type="button"
           >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
-          </button>
+            <span className="material-symbols-outlined text-[20px]">settings</span>
+          </Link>
 
           <Link
             href="/login"
             className="w-8 h-8 rounded-full bg-gaming-red text-white flex items-center justify-center shadow-[0_0_12px_rgba(255,0,56,0.5)] font-bold cursor-pointer transition-transform hover:scale-105"
-            title="Snapdragon Sovereign Operator Login / Enclave"
+            title="Operator Login / Enclave"
           >
             <span className="material-symbols-outlined text-[18px]">person</span>
           </Link>

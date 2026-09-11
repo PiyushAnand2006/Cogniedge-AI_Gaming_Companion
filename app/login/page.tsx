@@ -20,7 +20,7 @@ export default function LoginPage() {
 
     setTimeout(() => {
       setIsLoading(false);
-      router.push('/');
+      router.push('/dashboard');
     }, 600);
   };
 
@@ -28,7 +28,7 @@ export default function LoginPage() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      router.push('/');
+      router.push('/dashboard');
     }, 600);
   };
 
@@ -257,7 +257,7 @@ export default function LoginPage() {
 
             {/* Return to App Button */}
             <Link
-              href="/"
+              href="/dashboard"
               className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-gray-300 hover:text-white transition-all"
             >
               <span>Explore Platform</span>

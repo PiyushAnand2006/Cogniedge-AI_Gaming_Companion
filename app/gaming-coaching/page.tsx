@@ -1,453 +1,172 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { MetricCard } from '@/components/common/MetricCard';
 
 export default function GamingCoachingPage() {
-  const [activeTab, setActiveTab] = useState<'patterns' | 'vision' | 'loadout' | 'timeline'>('patterns');
-  const [overlayStatus, setOverlayStatus] = useState<string>('Ready');
-  const [selectedRound, setSelectedRound] = useState<number>(7);
+  const [activeTab, setActiveTab] = useState<'summary' | 'mistakes' | 'weapons' | 'timeline'>('summary');
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [selectedSession, setSelectedSession] = useState<any>(null);
 
-  const launchOverlay = async () => {
-    setOverlayStatus('Launching Overlay...');
-    try {
-      const res = await fetch('http://127.0.0.1:8088/overlay/launch', { method: 'POST' });
-      if (res.ok) {
-        setOverlayStatus('Active • Zero FPS Contention');
-      } else {
-        setOverlayStatus('Spawned (PyQt Process)');
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8088/sessions');
+        if (res.ok) {
+          const data = await res.json();
+          setSessions(data);
+          if (data.length > 0) setSelectedSession(data[0]);
+        }
+      } catch {
+        // Fallback session
       }
-    } catch {
-      if (typeof window !== 'undefined' && (window as unknown as { electronAPI?: { launchOverlay: () => void } }).electronAPI) {
-        (window as unknown as { electronAPI: { launchOverlay: () => void } }).electronAPI.launchOverlay();
-        setOverlayStatus('Active via Electron IPC');
-      } else {
-        setOverlayStatus('Active • Native Process');
-      }
-    }
+    };
+    fetchSessions();
+  }, []);
+
+  const fallbackSession = {
+    id: 'sess_live_cyberpunk',
+    game_title: 'Cyberpunk 2077',
+    start_time: Date.now() / 1000 - 1800,
+    duration_s: 1800,
+    avg_fps: 138.4,
+    one_pct_low: 94.6,
+    stutter_count: 2,
+    kills: 24,
+    deaths: 5,
+    coach_rating: 'A-',
+    summary: 'Strong engagement pacing in mid-range combat. Critical vulnerability detected in sub-30% HP duels in East Corridor.',
   };
 
+  const active = selectedSession || fallbackSession;
+
   return (
-    <div className="w-full min-h-screen tactical-hex-grid px-gutter-desktop py-space-lg max-w-[1760px] mx-auto flex flex-col gap-space-lg text-gaming-white pb-16">
-      
-      {/* TOP MATCH TELEMETRY BANNER & HEADER DEBRIEF (Sleek Stealth Armor with Crimson Highlights) */}
-      <section className="w-full bg-gaming-panel rounded-2xl p-space-lg relative overflow-hidden shadow-2xl border border-gaming-border/80 laser-border-left">
-        {/* Ambient Tech Watermark Accent */}
-        <div className="absolute right-6 -bottom-8 select-none pointer-events-none text-gaming-panel-highest/20 font-headline-lg text-[140px] leading-none tracking-tighter font-extrabold">
-          VICTORY
+    <div className="min-h-screen bg-gaming-bg text-gaming-white pt-20 pb-16 px-gutter-desktop max-w-[1760px] mx-auto flex flex-col gap-space-lg font-sans">
+      {/* Top Banner & Debrief Identity */}
+      <div className="p-space-lg rounded-2xl bg-gaming-panel border border-gaming-border shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-space-md clip-chamfer-tl-br laser-border-left">
+        <div>
+          <div className="flex items-center gap-space-xs mb-1 font-mono text-xs">
+            <span className="px-2 py-0.5 rounded bg-gaming-red/20 text-gaming-red-bright border border-gaming-red/40 uppercase font-bold">
+              POST-GAME ANALYSIS
+            </span>
+            <span className="text-gaming-slate">
+              Cross-Domain Intelligence (Player Behavior + Machine Performance)
+            </span>
+          </div>
+          <h1 className="font-headline-lg text-headline-lg text-gaming-white font-bold tracking-tight">
+            SESSION COACHING DEBRIEF // MATCH #APX-7829-X
+          </h1>
+          <p className="font-body-md text-body-md text-gaming-slate mt-0.5">
+            Qwen3-4B post-session evaluation correlating combat deaths with real-time frame pacing.
+          </p>
         </div>
 
-        {/* Top-Right Decorative Triple Hazard Slashes */}
-        <div className="absolute top-4 right-6 hidden sm:flex items-center gap-1.5 opacity-80">
-          <div className="hazard-slashes hazard-slashes-lg">
-            <span />
-            <span />
-            <span />
+        <div className="flex items-center gap-space-md font-mono shrink-0">
+          <div className="p-space-sm rounded-xl bg-gaming-carbon border border-gaming-border flex items-center gap-3">
+            <span className="text-gaming-slate text-xs uppercase">Overall Rating:</span>
+            <span className="text-2xl font-bold text-gaming-red-bright">{active.coach_rating || 'A-'}</span>
           </div>
-        </div>
-
-        <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
-          {/* Title & Match Context */}
-          <div className="flex flex-col gap-space-xs max-w-3xl">
-            <div className="flex flex-wrap items-center gap-space-xs">
-              <span className="px-space-sm py-0.5 rounded-sm bg-gaming-red-subtle border border-gaming-red/40 text-gaming-red-bright font-label-sm text-label-sm uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_12px_rgba(255,0,56,0.3)]">
-                <span className="w-2 h-2 rounded-full bg-gaming-red animate-ping" />
-                Debrief Synthesized
-              </span>
-              <span className="px-space-sm py-0.5 rounded-sm bg-gaming-panel-high border border-gaming-border text-gaming-slate font-label-sm text-label-sm font-mono">
-                SESSION: #APX-7829-X
-              </span>
-              <span className="px-space-sm py-0.5 rounded-sm bg-gaming-panel-high border border-gaming-border text-gaming-white font-label-sm text-label-sm flex items-center gap-1">
-                <span className="material-symbols-outlined text-[14px] text-gaming-red">memory</span>
-                Hexagon NPU v4.2 On-Device
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3 mt-1">
-              <h1 className="font-display-lg text-display-lg text-gaming-white tracking-tight font-bold">
-                Apex Vanguard <span className="text-gaming-red">//</span> Ranked Match
-              </h1>
-            </div>
-            
-            <p className="font-body-md text-body-md text-gaming-slate flex items-center gap-2">
-              <span className="text-gaming-white font-semibold flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px] text-gaming-red">location_on</span>
-                Neo Tokyo Sector B-9
-              </span>
-              <span className="text-gaming-border">•</span>
-              <span>Qualcomm AI Vision (YOLO26-N) &amp; Acoustic Stream Inference</span>
-            </p>
-          </div>
-
-          {/* Match Outcome & Fast Stats Cards */}
-          <div className="flex flex-wrap items-center gap-space-md">
-            {/* Rank / Placement Card */}
-            <div className="bg-gaming-panel-high/90 px-space-md py-space-sm rounded-xl flex items-center gap-space-sm shadow-lg border border-gaming-border hover:border-gaming-red/50 transition-all">
-              <div className="w-12 h-12 rounded-lg bg-gaming-red-subtle border border-gaming-red/30 flex items-center justify-center text-gaming-red shadow-[0_0_15px_rgba(255,0,56,0.25)]">
-                <span className="material-symbols-outlined text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                  military_tech
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-label-sm text-label-sm text-gaming-slate uppercase tracking-wider font-semibold">Match Result</span>
-                <span className="font-headline-md text-headline-md text-gaming-red-bright tracking-tight leading-tight font-extrabold font-mono">
-                  CHAMPION #1
-                </span>
-                <span className="font-label-sm text-label-sm text-gaming-slate">Outlived 20 Squads</span>
-              </div>
-            </div>
-
-            {/* Duration & Snapshots */}
-            <div className="bg-gaming-panel-high/90 px-space-md py-space-sm rounded-xl flex items-center gap-space-sm shadow-lg border border-gaming-border hover:border-gaming-red/50 transition-all">
-              <div className="w-12 h-12 rounded-lg bg-gaming-panel-highest flex items-center justify-center text-gaming-white border border-gaming-border">
-                <span className="material-symbols-outlined text-[28px]">timer</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-label-sm text-label-sm text-gaming-slate uppercase tracking-wider font-semibold">Match Duration</span>
-                <span className="font-headline-md text-headline-md text-gaming-white tracking-tight leading-tight font-bold font-mono">
-                  22m 45s
-                </span>
-                <span className="font-label-sm text-label-sm text-gaming-slate font-mono">1,365 Frames Inferred</span>
-              </div>
-            </div>
-
-            {/* Inference Speed */}
-            <div className="bg-gaming-panel-high/90 px-space-md py-space-sm rounded-xl flex items-center gap-space-sm shadow-lg border border-gaming-border hover:border-gaming-red/50 transition-all">
-              <div className="w-12 h-12 rounded-lg bg-gaming-red-subtle border border-gaming-red/30 flex items-center justify-center text-gaming-red">
-                <span className="material-symbols-outlined text-[28px]">bolt</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-label-sm text-label-sm text-gaming-red-bright uppercase tracking-wider font-semibold">Analysis Speed</span>
-                <span className="font-headline-md text-headline-md text-gaming-white tracking-tight leading-tight font-bold font-mono">
-                  1.4 sec
-                </span>
-                <span className="font-label-sm text-label-sm text-gaming-slate">100% Offline Parsing</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Telemetry Status Bar Strip with Action CTA */}
-        <div className="mt-space-md pt-space-sm flex flex-wrap items-center justify-between gap-space-sm bg-gaming-carbon -mx-space-lg -mb-space-lg px-space-lg py-space-sm border-t border-gaming-border/60">
-          <div className="flex flex-wrap items-center gap-space-md font-label-sm text-label-sm text-gaming-slate">
-            <span className="flex items-center gap-1.5 text-gaming-red-bright font-semibold">
-              <span className="w-2 h-2 rounded-full bg-gaming-red animate-ping" />
-              0.00 FPS Variance Recorded (Zero GPU Drop)
-            </span>
-            <span className="text-gaming-border hidden sm:inline">•</span>
-            <span className="flex items-center gap-1.5 text-gaming-white">
-              <span className="material-symbols-outlined text-[16px] text-gaming-red">memory</span>
-              Hexagon NPU Sovereign: 0.0% CPU/GPU Contention
-            </span>
-            <span className="text-gaming-border hidden sm:inline">•</span>
-            <span className="flex items-center gap-1.5 text-gaming-slate">
-              <span className="material-symbols-outlined text-[16px] text-gaming-slate">graphic_eq</span>
-              Acoustic Whisper Sync Active
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-space-sm">
-            <button
-              onClick={launchOverlay}
-              type="button"
-              className="px-space-md py-1.5 bg-gaming-red hover:bg-gaming-red-bright text-white font-headline-sm text-label-md rounded-lg shadow-[0_0_16px_rgba(255,0,56,0.45)] hover:shadow-[0_0_24px_rgba(255,0,56,0.7)] transition-all flex items-center gap-1.5 active:scale-95 font-bold"
-            >
-              <span className="material-symbols-outlined text-[16px]">sports_esports</span>
-              <span>{overlayStatus}</span>
-            </button>
-            <Link
-              href="/benchmark"
-              className="px-space-md py-1.5 bg-gaming-panel-highest hover:bg-gaming-border text-gaming-white font-headline-sm text-label-md rounded-lg border border-gaming-border transition-all flex items-center gap-1"
-            >
-              <span className="material-symbols-outlined text-[16px] text-gaming-red">speed</span>
-              <span>Zero-FPS Benchmark</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* INTERACTIVE NAVIGATION CONTROL BAR (Tab Switcher) */}
-      <section className="flex flex-wrap items-center justify-between gap-space-sm bg-gaming-panel p-1.5 rounded-xl border border-gaming-border shadow-lg">
-        <div className="flex flex-wrap items-center gap-1">
           <button
-            onClick={() => setActiveTab('patterns')}
             type="button"
-            className={`px-space-md py-2 rounded-lg font-headline-sm text-label-md flex items-center gap-2 transition-all ${
-              activeTab === 'patterns'
-                ? 'bg-gaming-red text-white font-bold shadow-[0_0_16px_rgba(255,0,56,0.4)]'
-                : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-panel-high'
-            }`}
+            onClick={() => window.print()}
+            className="px-4 py-2 rounded-lg bg-gaming-panel-highest hover:bg-gaming-border text-gaming-white font-headline-sm text-xs font-bold border border-gaming-border transition-colors flex items-center gap-1.5"
           >
-            <span className="material-symbols-outlined text-[18px]">psychology</span>
-            <span>Tactical Mistake Breakdown</span>
-            <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${activeTab === 'patterns' ? 'bg-black/30 text-white' : 'bg-gaming-panel-highest text-gaming-slate'}`}>
-              2 Habits
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('vision')}
-            type="button"
-            className={`px-space-md py-2 rounded-lg font-headline-sm text-label-md flex items-center gap-2 transition-all ${
-              activeTab === 'vision'
-                ? 'bg-gaming-red text-white font-bold shadow-[0_0_16px_rgba(255,0,56,0.4)]'
-                : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-panel-high'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">center_focus_strong</span>
-            <span>YOLO26-N Vision Stream &amp; Radar</span>
-            <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${activeTab === 'vision' ? 'bg-black/30 text-white' : 'bg-gaming-panel-highest text-gaming-slate'}`}>
-              60 FPS
-            </span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('loadout')}
-            type="button"
-            className={`px-space-md py-2 rounded-lg font-headline-sm text-label-md flex items-center gap-2 transition-all ${
-              activeTab === 'loadout'
-                ? 'bg-gaming-red text-white font-bold shadow-[0_0_16px_rgba(255,0,56,0.4)]'
-                : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-panel-high'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">equalizer</span>
-            <span>Loadout &amp; DPS Matrix</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('timeline')}
-            type="button"
-            className={`px-space-md py-2 rounded-lg font-headline-sm text-label-md flex items-center gap-2 transition-all ${
-              activeTab === 'timeline'
-                ? 'bg-gaming-red text-white font-bold shadow-[0_0_16px_rgba(255,0,56,0.4)]'
-                : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-panel-high'
-            }`}
-          >
-            <span className="material-symbols-outlined text-[18px]">timeline</span>
-            <span>Round-by-Round Timeline</span>
-            <span className={`px-1.5 py-0.2 rounded text-[10px] font-mono ${activeTab === 'timeline' ? 'bg-black/30 text-white' : 'bg-gaming-panel-highest text-gaming-slate'}`}>
-              12 Rounds
-            </span>
+            <span className="material-symbols-outlined text-[16px]">download</span>
+            <span>Export Intel</span>
           </button>
         </div>
+      </div>
 
-        <div className="hidden lg:flex items-center gap-2 px-space-sm text-gaming-slate font-label-sm text-label-sm font-mono">
-          <span className="w-2 h-2 rounded-full bg-gaming-red animate-pulse" />
-          <span>SNAPDRAGON SOVEREIGN AI WORKSTATION</span>
-        </div>
-      </section>
+      {/* Primary KPI Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-space-md">
+        <MetricCard
+          label="Combat Score (K/D)"
+          value={`${active.kills || 24} / ${active.deaths || 5}`}
+          subValue="4.8 K/D Ratio"
+          subColor="text-emerald-400"
+          icon={<span className="material-symbols-outlined text-[18px]">crosshair</span>}
+        />
+        <MetricCard
+          label="Session Average FPS"
+          value={`${(active.avg_fps || 138.4).toFixed(1)}`}
+          subValue={`1% Low: ${(active.one_pct_low || 94.6).toFixed(1)} FPS`}
+          subColor="text-emerald-400"
+          icon={<span className="material-symbols-outlined text-[18px]">speed</span>}
+        />
+        <MetricCard
+          label="Micro-Stutter Events"
+          value={`${active.stutter_count || 2}`}
+          subValue="0 Deaths from Stutter"
+          subColor="text-gaming-slate"
+          icon={<span className="material-symbols-outlined text-[18px]">bolt</span>}
+        />
+        <MetricCard
+          label="Combat Precision Rating"
+          value="88.2%"
+          subValue="+14% vs Regional Avg"
+          subColor="text-emerald-400"
+          icon={<span className="material-symbols-outlined text-[18px]">award_star</span>}
+        />
+      </div>
 
-      {/* TAB 1: TACTICAL MISTAKE BREAKDOWN */}
-      {activeTab === 'patterns' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
-          {/* Dominant Section: Recurring Tactical Patterns (8 Cols) */}
-          <section
-            className="lg:col-span-8 flex flex-col gap-space-md bg-gaming-panel p-space-lg rounded-2xl shadow-2xl relative border border-gaming-border laser-border-left"
-            role="region"
-            aria-label="Dominant Recurring Mistake Section"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-xs">
-                <div className="hazard-slashes">
-                  <span />
-                  <span />
-                  <span />
-                </div>
-                <h2 className="font-headline-lg text-gaming-white text-headline-lg font-bold tracking-tight">
-                  Recurring Mistake &amp; Tactical Pattern Breakdown
-                </h2>
-              </div>
-              <span className="font-label-sm text-label-sm text-gaming-slate bg-gaming-panel-high border border-gaming-border px-space-xs py-0.5 rounded font-mono">
-                Neural Habit Extraction
-              </span>
-            </div>
+      {/* Tactical Tab Navigation */}
+      <div className="flex items-center gap-2 p-1.5 rounded-xl bg-gaming-panel border border-gaming-border shadow-inner font-mono text-xs">
+        <button
+          type="button"
+          onClick={() => setActiveTab('summary')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'summary'
+              ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
+              : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[16px]">summarize</span>
+          <span>Match Summary &amp; Radar</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('mistakes')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'mistakes'
+              ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
+              : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[16px]">troubleshoot</span>
+          <span>Tactical Mistakes &amp; Habit Engine</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('weapons')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'weapons'
+              ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
+              : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[16px]">sports_martial_arts</span>
+          <span>Weapon Arsenal Breakdown</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('timeline')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'timeline'
+              ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
+              : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
+          }`}
+        >
+          <span className="material-symbols-outlined text-[16px]">timeline</span>
+          <span>Round-by-Round Timeline</span>
+        </button>
+      </div>
 
-            {/* Pattern Card 1: Over-peeking Chokepoints (Critical) */}
-            <div className="bg-gaming-panel-high rounded-xl p-space-md flex flex-col gap-space-sm shadow-md transition-all hover:border-gaming-red/50 border border-gaming-border relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gaming-red/5 rounded-full blur-2xl pointer-events-none group-hover:bg-gaming-red/10 transition-all" />
-              
-              <div className="flex flex-wrap items-center justify-between gap-space-xs">
-                <div className="flex items-center gap-space-xs">
-                  <span className="px-2.5 py-1 rounded bg-gaming-red text-white font-label-sm text-label-sm font-bold uppercase flex items-center gap-1 shadow-[0_0_10px_rgba(255,0,56,0.4)]">
-                    <span className="material-symbols-outlined text-[14px]">warning</span>
-                    Critical Habit (Freq: 4x)
-                  </span>
-                  <span className="font-headline-sm text-label-lg text-gaming-white font-bold">
-                    Over-peeking East Corridor Chokepoints Under 40 HP
-                  </span>
-                </div>
-                <span className="font-label-sm text-label-sm text-gaming-slate font-mono bg-gaming-carbon px-2 py-0.5 rounded border border-gaming-border">
-                  Occurrences: R2, R4, R7, R11
-                </span>
-              </div>
-
-              <p className="font-body-md text-body-md text-gaming-slate leading-relaxed">
-                YOLO26-N vision detection observed 4 instances where player maintained ADS sightline while kinetic armor was depleted and shield was on 6s recharge. Resulted in 78% of total damage taken across the match.
-              </p>
-
-              {/* Actionable Coach Advice with Highlight Box */}
-              <div className="bg-gaming-carbon/80 border border-gaming-border/80 rounded-lg p-space-sm flex flex-col gap-2 mt-1">
-                <div className="flex items-start gap-2">
-                  <span className="w-7 h-7 rounded-lg bg-gaming-red-subtle border border-gaming-red/40 flex items-center justify-center text-gaming-red-bright shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-[16px]">psychology</span>
-                  </span>
-                  <div>
-                    <span className="font-label-sm text-label-sm text-gaming-red-bright font-bold uppercase">
-                      Qwen3 On-Device Tactical Coach:
-                    </span>
-                    <p className="font-body-sm text-body-sm text-gaming-white mt-0.5">
-                      Fall back 15m to elevated Catwalk B-9 and deploy thermal smoke before resetting. Do not challenge long-range angles while kinetic shield is depleted.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gaming-border/60 font-label-sm text-label-sm">
-                  <span className="text-gaming-slate flex items-center gap-1 font-mono">
-                    <span className="material-symbols-outlined text-[14px] text-gaming-red">security</span>
-                    Target Area: East Corridor B-9
-                  </span>
-                  <span className="text-gaming-red-bright font-mono font-bold bg-gaming-red-subtle border border-gaming-red/30 px-2 py-0.5 rounded">
-                    Estimated Delta: +28% Survivability
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pattern Card 2: Reload Cadence Timing */}
-            <div className="bg-gaming-panel-high rounded-xl p-space-md flex flex-col gap-space-sm shadow-md transition-all hover:border-gaming-red/50 border border-gaming-border relative overflow-hidden group">
-              <div className="flex flex-wrap items-center justify-between gap-space-xs">
-                <div className="flex items-center gap-space-xs">
-                  <span className="px-2.5 py-1 rounded bg-gaming-panel-highest text-gaming-white border border-gaming-border font-label-sm text-label-sm font-bold uppercase flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px] text-gaming-red">autorenew</span>
-                    Medium Impact (Freq: 3x)
-                  </span>
-                  <span className="font-headline-sm text-label-lg text-gaming-white font-bold">
-                    Premature Weapon Swapping Before Ammo Exhaustion
-                  </span>
-                </div>
-                <span className="font-label-sm text-label-sm text-gaming-slate font-mono bg-gaming-carbon px-2 py-0.5 rounded border border-gaming-border">
-                  Occurrences: R3, R8, R10
-                </span>
-              </div>
-
-              <p className="font-body-md text-body-md text-gaming-slate leading-relaxed">
-                Swapped Heavy Pulse Rifle with &gt;12 rounds remaining during CQB engagements. Transition animation added 650ms vulnerability window where enemies scored kinetic headshots.
-              </p>
-
-              {/* Actionable Coach Advice */}
-              <div className="bg-gaming-carbon/80 border border-gaming-border/80 rounded-lg p-space-sm flex flex-col gap-2 mt-1">
-                <div className="flex items-start gap-2">
-                  <span className="w-7 h-7 rounded-lg bg-gaming-red-subtle border border-gaming-red/40 flex items-center justify-center text-gaming-red-bright shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-[16px]">psychology</span>
-                  </span>
-                  <div>
-                    <span className="font-label-sm text-label-sm text-gaming-red-bright font-bold uppercase">
-                      Qwen3 On-Device Tactical Coach:
-                    </span>
-                    <p className="font-body-sm text-body-sm text-gaming-white mt-0.5">
-                      Empty the pulse clip completely before switching weapons, or prioritize melee stagger at &lt;4m distance to cancel enemy aim.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gaming-border/60 font-label-sm text-label-sm">
-                  <span className="text-gaming-slate flex items-center gap-1 font-mono">
-                    <span className="material-symbols-outlined text-[14px] text-gaming-red">bolt</span>
-                    Vulnerability Window: 650ms
-                  </span>
-                  <span className="text-gaming-red-bright font-mono font-bold bg-gaming-red-subtle border border-gaming-red/30 px-2 py-0.5 rounded">
-                    DPS Retention: +19%
-                  </span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Sidebar: Performance & Hardware Evidence (4 Cols) */}
-          <section
-            className="lg:col-span-4 flex flex-col gap-space-md bg-gaming-panel p-space-lg rounded-2xl shadow-xl border border-gaming-border"
-            role="region"
-            aria-label="Loadout and Performance Metrics Section"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-space-xs">
-                <span className="material-symbols-outlined text-gaming-red text-[20px]">equalizer</span>
-                <h2 className="font-headline-sm text-headline-sm text-gaming-white font-bold">
-                  Tactical Performance Profile
-                </h2>
-              </div>
-              <span className="font-label-sm text-label-sm text-gaming-red-bright font-mono">HEXAGON NPU</span>
-            </div>
-
-            <div className="flex flex-col gap-space-sm">
-              {/* Pulse Rifle Metric */}
-              <div className="bg-gaming-panel-high p-space-md rounded-xl flex flex-col gap-1 border border-gaming-border">
-                <div className="flex items-center justify-between font-label-sm text-label-sm">
-                  <span className="text-gaming-white font-bold">Heavy Pulse Rifle</span>
-                  <span className="text-gaming-red-bright font-mono font-bold">46.8% Accuracy</span>
-                </div>
-                <div className="w-full h-2 bg-gaming-carbon rounded-full overflow-hidden mt-1 border border-gaming-border/40">
-                  <div className="h-full bg-gaming-red w-[46.8%] rounded-full shadow-[0_0_10px_rgba(255,0,56,0.8)]" />
-                </div>
-                <span className="font-label-sm text-label-sm text-gaming-slate mt-1 font-mono">
-                  Headshot Multiplier: 1.4x • 14 Eliminations
-                </span>
-              </div>
-
-              {/* Scattergun Metric */}
-              <div className="bg-gaming-panel-high p-space-md rounded-xl flex flex-col gap-1 border border-gaming-border">
-                <div className="flex items-center justify-between font-label-sm text-label-sm">
-                  <span className="text-gaming-white font-bold">Plasma Scattergun</span>
-                  <span className="text-gaming-red-bright font-mono font-bold">68.2% Accuracy</span>
-                </div>
-                <div className="w-full h-2 bg-gaming-carbon rounded-full overflow-hidden mt-1 border border-gaming-border/40">
-                  <div className="h-full bg-gaming-red w-[68.2%] rounded-full shadow-[0_0_10px_rgba(255,0,56,0.8)]" />
-                </div>
-                <span className="font-label-sm text-label-sm text-gaming-slate mt-1 font-mono">
-                  CQB Burst: 820 DPS • 8 Eliminations
-                </span>
-              </div>
-
-              {/* Zero-FPS Benchmark Evidence Box */}
-              <div className="bg-gaming-carbon p-space-md rounded-xl border border-gaming-red/30 flex flex-col gap-2 mt-space-xs shadow-[0_0_16px_rgba(255,0,56,0.1)]">
-                <div className="flex items-center justify-between border-b border-gaming-border/60 pb-1.5">
-                  <span className="font-label-sm text-label-sm text-gaming-red-bright uppercase font-bold flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-gaming-red animate-pulse" />
-                    Zero-FPS Benchmark Evidence
-                  </span>
-                  <span className="text-gaming-slate font-label-sm text-label-sm font-mono">Verified</span>
-                </div>
-
-                <div className="flex items-center justify-between font-label-sm text-label-sm text-gaming-white">
-                  <span className="text-gaming-slate">Average Game FPS:</span>
-                  <span className="text-gaming-red-bright font-mono font-bold">144.0 FPS (0 Drop)</span>
-                </div>
-
-                <div className="flex items-center justify-between font-label-sm text-label-sm text-gaming-white">
-                  <span className="text-gaming-slate">GPU Contention:</span>
-                  <span className="text-gaming-white font-mono font-bold">0.00% (Isolated to NPU)</span>
-                </div>
-
-                <div className="flex items-center justify-between font-label-sm text-label-sm text-gaming-white">
-                  <span className="text-gaming-slate">Vision Latency:</span>
-                  <span className="text-gaming-white font-mono">16.2 ms (YOLO26-N INT8)</span>
-                </div>
-
-                <div className="flex items-center justify-between font-label-sm text-label-sm text-gaming-white">
-                  <span className="text-gaming-slate">VRAM Allocation:</span>
-                  <span className="text-gaming-white font-mono">0.0 MB (Shared Memory)</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      )}
-
-      {/* TAB 2: YOLO26-N VISION STREAM & RADAR HEATMAP */}
-      {activeTab === 'vision' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
-          {/* Main Visual Stream Display (8 cols) */}
-          <section className="lg:col-span-8 bg-gaming-panel rounded-2xl p-space-lg border border-gaming-border flex flex-col gap-space-md laser-border-left">
+      {/* TAB 1: MATCH SUMMARY & RADAR */}
+      {activeTab === 'summary' && (
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-space-lg">
+          {/* Tactical Overview */}
+          <div className="lg:col-span-2 bg-gaming-panel rounded-2xl p-space-lg shadow-2xl border border-gaming-border flex flex-col gap-space-md clip-chamfer-tl-br laser-border-left">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-space-xs">
                 <div className="hazard-slashes">
@@ -456,111 +175,163 @@ export default function GamingCoachingPage() {
                   <span />
                 </div>
                 <h2 className="font-headline-lg text-gaming-white text-headline-lg font-bold">
-                  YOLO26-N NPU Vision Feed (Replay Frame #842)
+                  Tactical Debrief Analysis
                 </h2>
               </div>
-              <span className="px-space-xs py-0.5 rounded bg-gaming-red text-white font-label-sm text-label-sm font-bold font-mono uppercase">
-                60 FPS STREAM • INT8
+              <span className="font-label-sm text-label-sm text-gaming-red-bright font-mono px-2 py-0.5 bg-gaming-carbon border border-gaming-red/30 rounded">
+                GENIE QWEN3-4B INT4
               </span>
             </div>
 
-            {/* Simulated HUD Vision Frame */}
-            <div className="relative w-full h-[380px] bg-gaming-carbon rounded-xl overflow-hidden border border-gaming-border/80 flex items-center justify-center">
-              {/* Tactical Crosshair / Grid overlay */}
-              <div className="absolute inset-0 opacity-20 pointer-events-none" style={{
-                backgroundImage: 'radial-gradient(circle, #ff0038 1px, transparent 1px)',
-                backgroundSize: '24px 24px'
-              }} />
+            <div className="p-4 rounded-xl bg-gaming-carbon border border-gaming-border space-y-2">
+              <span className="font-label-sm text-label-sm text-gaming-red-bright uppercase font-mono font-bold flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px]">psychology</span>
+                Coach Summary &amp; Key Findings
+              </span>
+              <p className="font-body-md text-body-md text-gaming-slate leading-relaxed">
+                {active.summary || 'Player exhibited exceptional aim stability (46.8% accuracy) during opening phase. Micro-stutters occurred 2 times in East Corridor during volumetric smoke rendering, but zero frame drops were caused by local NPU AI background telemetry.'}
+              </p>
+            </div>
 
-              {/* Center Crosshair */}
-              <div className="absolute w-12 h-12 border border-gaming-red/40 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-gaming-red rounded-full animate-ping" />
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm font-mono text-center">
+              <div className="p-space-sm bg-gaming-carbon rounded-xl border border-gaming-border">
+                <span className="text-gaming-slate text-[10px] uppercase block">Engagement Winrate</span>
+                <span className="text-gaming-white font-bold text-lg">78.4%</span>
               </div>
-
-              {/* Bounding Box 1 (Hostile Armor) */}
-              <div className="absolute left-[24%] top-[28%] w-[160px] h-[190px] border-2 border-gaming-red rounded-md bg-gaming-red/10 flex flex-col justify-between p-1.5 shadow-[0_0_15px_rgba(255,0,56,0.35)]">
-                <div className="flex items-center justify-between font-mono text-[10px] bg-gaming-red text-white px-1 py-0.5 rounded font-bold">
-                  <span>HOSTILE #1 [ARMOR]</span>
-                  <span>94%</span>
-                </div>
-                <div className="text-[10px] font-mono text-gaming-red-bright bg-black/80 px-1 rounded self-start">
-                  DIST: 24m • THREAT: HIGH
-                </div>
+              <div className="p-space-sm bg-gaming-carbon rounded-xl border border-gaming-border">
+                <span className="text-gaming-slate text-[10px] uppercase block">First Blood Rate</span>
+                <span className="text-gaming-red-bright font-bold text-lg">62.5%</span>
               </div>
-
-              {/* Bounding Box 2 (Hostile Flank) */}
-              <div className="absolute right-[28%] top-[34%] w-[140px] h-[170px] border border-gaming-red-bright rounded-md bg-gaming-red/5 flex flex-col justify-between p-1.5">
-                <div className="flex items-center justify-between font-mono text-[10px] bg-gaming-panel-highest text-gaming-white px-1 py-0.5 rounded">
-                  <span>HOSTILE #2 [LOW HP]</span>
-                  <span>88%</span>
-                </div>
-                <div className="text-[10px] font-mono text-gaming-white bg-black/80 px-1 rounded self-start">
-                  DIST: 38m • CHOKE B-9
-                </div>
+              <div className="p-space-sm bg-gaming-carbon rounded-xl border border-gaming-border">
+                <span className="text-gaming-slate text-[10px] uppercase block">Clutch Conversions</span>
+                <span className="text-emerald-400 font-bold text-lg">3 / 4 (75%)</span>
               </div>
+            </div>
+          </div>
 
-              {/* Bottom Stream Status */}
-              <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between bg-gaming-panel/90 px-space-md py-1.5 rounded-lg border border-gaming-border text-gaming-slate font-mono font-label-sm text-label-sm">
-                <span className="flex items-center gap-1.5 text-gaming-white">
-                  <span className="w-2 h-2 rounded-full bg-gaming-red animate-pulse" />
-                  NPU Frame Latency: 16.2ms
+          {/* Radar Dimension Block */}
+          <div className="bg-gaming-panel rounded-2xl p-space-lg shadow-2xl border border-gaming-border flex flex-col justify-between gap-space-md clip-chamfer-sm">
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <span className="font-headline-sm text-headline-sm text-gaming-white font-bold">
+                  Tactical Radar Attributes
                 </span>
-                <span>YOLO26-N Quantization: INT8 Tensor Core</span>
-                <span className="text-gaming-red-bright font-bold">0% CPU/GPU Load</span>
+                <span className="text-[10px] font-mono text-gaming-slate">Normalized 0-100</span>
               </div>
-            </div>
 
-            <p className="font-body-md text-body-md text-gaming-slate">
-              Hexagon NPU scans the active display buffer at 60 FPS directly via DirectX surface capture. Objects, player models, and weapon states are categorized in real-time without taking any GPU render cycles away from the game engine.
-            </p>
-          </section>
+              <div className="space-y-3 font-mono text-xs">
+                <div>
+                  <div className="flex items-center justify-between text-gaming-slate mb-1">
+                    <span>Aim Accuracy</span>
+                    <span className="text-gaming-white font-bold">92 / 100</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
+                    <div className="h-full bg-gaming-red rounded-full" style={{ width: '92%' }} />
+                  </div>
+                </div>
 
-          {/* Vision Telemetry Sidebar (4 cols) */}
-          <section className="lg:col-span-4 bg-gaming-panel rounded-2xl p-space-lg border border-gaming-border flex flex-col gap-space-md">
-            <div className="flex items-center justify-between">
-              <h3 className="font-headline-sm text-headline-sm text-gaming-white font-bold">
-                Threat Proximity Radar
-              </h3>
-              <span className="font-label-sm text-label-sm text-gaming-red-bright font-mono">SECTOR B-9</span>
-            </div>
+                <div>
+                  <div className="flex items-center justify-between text-gaming-slate mb-1">
+                    <span>Positioning &amp; Cover</span>
+                    <span className="text-gaming-white font-bold">78 / 100</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
+                    <div className="h-full bg-gaming-red rounded-full" style={{ width: '78%' }} />
+                  </div>
+                </div>
 
-            <div className="w-full aspect-square bg-gaming-carbon rounded-xl border border-gaming-border relative flex items-center justify-center overflow-hidden">
-              {/* Concentric Radar Rings */}
-              <div className="w-[85%] h-[85%] border border-gaming-border/40 rounded-full flex items-center justify-center">
-                <div className="w-[65%] h-[65%] border border-gaming-border/60 rounded-full flex items-center justify-center">
-                  <div className="w-[35%] h-[35%] border border-gaming-red/40 rounded-full flex items-center justify-center">
-                    <div className="w-3 h-3 bg-gaming-white rounded-full shadow-[0_0_8px_white]" title="Player Position" />
+                <div>
+                  <div className="flex items-center justify-between text-gaming-slate mb-1">
+                    <span>Retreat Discipline</span>
+                    <span className="text-gaming-red-bright font-bold">44 / 100</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '44%' }} />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-gaming-slate mb-1">
+                    <span>Resource Management</span>
+                    <span className="text-gaming-white font-bold">85 / 100</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '85%' }} />
                   </div>
                 </div>
               </div>
-
-              {/* Hostile Blips */}
-              <div className="absolute top-[28%] right-[32%] w-3 h-3 bg-gaming-red rounded-full animate-ping" />
-              <div className="absolute top-[28%] right-[32%] w-3 h-3 bg-gaming-red rounded-full shadow-[0_0_10px_#ff0038]" />
-
-              <div className="absolute bottom-[36%] left-[28%] w-2.5 h-2.5 bg-gaming-red rounded-full shadow-[0_0_10px_#ff0038]" />
-
-              {/* Radar Sweep Line */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-gaming-red/10 to-transparent pointer-events-none animate-spin" style={{ animationDuration: '4s' }} />
             </div>
 
-            <div className="flex flex-col gap-2 font-label-sm text-label-sm font-mono">
-              <div className="flex items-center justify-between text-gaming-white bg-gaming-panel-high p-2 rounded border border-gaming-border">
-                <span>Active Threat Vectors:</span>
-                <span className="text-gaming-red-bright font-bold">2 Hostiles Logged</span>
-              </div>
-              <div className="flex items-center justify-between text-gaming-white bg-gaming-panel-high p-2 rounded border border-gaming-border">
-                <span>Flank Prediction Window:</span>
-                <span className="text-gaming-white font-bold">12 seconds</span>
-              </div>
+            <div className="p-3 rounded-lg bg-gaming-carbon border border-gaming-red/30 text-xs font-mono text-gaming-slate">
+              <strong className="text-gaming-red-bright uppercase block mb-1">Key Growth Vector:</strong>
+              Increase retreat discipline when health dips below 30% HP.
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       )}
 
-      {/* TAB 3: LOADOUT & WEAPON DPS MATRIX */}
-      {activeTab === 'loadout' && (
-        <section className="bg-gaming-panel rounded-2xl p-space-lg border border-gaming-border flex flex-col gap-space-md laser-border-left shadow-2xl">
+      {/* TAB 2: TACTICAL MISTAKES */}
+      {activeTab === 'mistakes' && (
+        <section className="w-full bg-gaming-panel rounded-2xl p-space-lg shadow-2xl border border-gaming-border flex flex-col gap-space-md laser-border-left">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-space-xs">
+              <div className="hazard-slashes">
+                <span />
+                <span />
+                <span />
+              </div>
+              <h2 className="font-headline-lg text-gaming-white text-headline-lg font-bold">
+                Tactical Mistakes &amp; Critical Death Analysis
+              </h2>
+            </div>
+            <span className="font-label-sm text-label-sm text-gaming-slate font-mono">
+              3 Recurring Habits Found
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-gaming-carbon border border-gaming-red/40 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-headline-sm text-sm text-gaming-red-bright font-bold flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px]">warning</span>
+                  Over-staying in East Corridor at Low Shield (Round 07)
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gaming-red text-white font-bold">
+                  HIGH SEVERITY
+                </span>
+              </div>
+              <p className="text-xs text-gaming-slate">
+                Player took a 1v2 engagement with 28% shield while enemy squad held high ground.
+              </p>
+              <div className="p-2.5 rounded-lg bg-gaming-panel border border-gaming-border text-xs text-emerald-400 font-mono">
+                💡 Qwen Coach Advice: Rotate through B-Connector staircase to reset shield capacitor before re-engaging.
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-gaming-carbon border border-gaming-border space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-headline-sm text-sm text-gaming-white font-bold flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-amber-400">info</span>
+                  Reload Timing in Open Line of Sight (Round 11)
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
+                  MODERATE SEVERITY
+                </span>
+              </div>
+              <p className="text-xs text-gaming-slate">
+                Primary weapon reloaded without taking hard cover in mid-courtyard.
+              </p>
+              <div className="p-2.5 rounded-lg bg-gaming-panel border border-gaming-border text-xs text-emerald-400 font-mono">
+                💡 Qwen Coach Advice: Slide-cancel behind stone barrier before initiating full reload animation.
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* TAB 3: WEAPONS */}
+      {activeTab === 'weapons' && (
+        <section className="w-full bg-gaming-panel rounded-2xl p-space-lg shadow-2xl border border-gaming-border flex flex-col gap-space-md laser-border-left">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-space-xs">
               <div className="hazard-slashes">
@@ -578,7 +349,6 @@ export default function GamingCoachingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
-            {/* Weapon 1 */}
             <div className="bg-gaming-panel-high p-space-lg rounded-xl border border-gaming-border flex flex-col gap-space-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -606,11 +376,10 @@ export default function GamingCoachingPage() {
               </div>
 
               <p className="font-body-sm text-body-sm text-gaming-slate">
-                High precision at 25-50m range. Recommendation: Avoid prematurely swapping to secondary when magazine has &gt;8 bullets left during corridor pushes.
+                High precision at 25-50m range. Recommendation: Avoid prematurely swapping to secondary when magazine has &gt;8 bullets left.
               </p>
             </div>
 
-            {/* Weapon 2 */}
             <div className="bg-gaming-panel-high p-space-lg rounded-xl border border-gaming-border flex flex-col gap-space-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -645,7 +414,7 @@ export default function GamingCoachingPage() {
         </section>
       )}
 
-      {/* TAB 4: ROUND-BY-ROUND TIMELINE */}
+      {/* TAB 4: TIMELINE */}
       {activeTab === 'timeline' && (
         <section className="w-full bg-gaming-panel rounded-2xl p-space-lg shadow-2xl border border-gaming-border flex flex-col gap-space-md laser-border-left">
           <div className="flex items-center justify-between">
@@ -661,7 +430,6 @@ export default function GamingCoachingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
-            {/* Early Rounds */}
             <div className="p-space-md rounded-xl bg-gaming-panel-high border border-gaming-border flex flex-col gap-2 hover:border-gaming-red/50 transition-all">
               <div className="flex items-center justify-between">
                 <span className="font-label-md text-label-md text-gaming-white font-bold font-mono">Round 01-04 (Early)</span>
@@ -672,7 +440,6 @@ export default function GamingCoachingPage() {
               </p>
             </div>
 
-            {/* Mid Rounds */}
             <div className="p-space-md rounded-xl bg-gaming-panel-high border border-gaming-red/40 flex flex-col gap-2 shadow-[0_0_12px_rgba(255,0,56,0.15)]">
               <div className="flex items-center justify-between">
                 <span className="font-label-md text-label-md text-gaming-red-bright font-bold font-mono">Round 05-08 (Mid)</span>
@@ -683,7 +450,6 @@ export default function GamingCoachingPage() {
               </p>
             </div>
 
-            {/* Late Rounds */}
             <div className="p-space-md rounded-xl bg-gaming-panel-high border border-gaming-red/40 flex flex-col gap-2 shadow-[0_0_12px_rgba(255,0,56,0.15)]">
               <div className="flex items-center justify-between">
                 <span className="font-label-md text-label-md text-gaming-red-bright font-bold font-mono">Round 09-12 (Late)</span>
@@ -696,7 +462,6 @@ export default function GamingCoachingPage() {
           </div>
         </section>
       )}
-
     </div>
   );
 }
