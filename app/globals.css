@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #0f131c;
+    color: #dfe2ee;
+    font-family: 'Inter', sans-serif;
+  }
+  body {
+    overscroll-behavior: none;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0e16;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #262a33;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #31353e;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes pulse-glow-cyan {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.8);
+  }
+}
+
+@keyframes pulse-glow-emerald {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.8);
+  }
+}
+
+@keyframes pulse-glow-crimson {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255, 0, 56, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(255, 0, 56, 0.85);
+  }
+}
+
+@keyframes laser-sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateY(200%); opacity: 0; }
+}
+
+.glow-cyan {
+  animation: pulse-glow-cyan 3s infinite;
+}
+
+.glow-emerald {
+  animation: pulse-glow-emerald 3s infinite;
+}
+
+.glow-crimson {
+  animation: pulse-glow-crimson 2.5s infinite;
+}
+
+/* Tactical Honeycomb Hex Pattern */
+.tactical-hex-grid {
+  background-color: #08090c;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(255, 0, 56, 0.08) 0%, transparent 70%),
+    radial-gradient(circle at 100% 100%, rgba(255, 0, 56, 0.05) 0%, transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l11 6.35 11-6.35V17.9L14 11.55 3 17.9z' fill='%23ffffff' fill-opacity='0.02' fill-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* Tactical Angular Armor Chamfer */
+.clip-chamfer-tl-br {
+  clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+}
+
+.clip-chamfer-tr-bl {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
+.clip-chamfer-sm {
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+}
+
+/* Triple Hazard Slash Sits */
+.hazard-slashes {
+  display: inline-flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.hazard-slashes span {
+  display: inline-block;
+  width: 4px;
+  height: 14px;
+  background-color: #ff0038;
+  transform: skewX(-25deg);
+  border-radius: 1px;
+}
+
+.hazard-slashes-lg span {
+  width: 6px;
+  height: 22px;
+}
+
+/* Crimson Laser Edge Glow */
+.laser-border-left {
+  position: relative;
+}
+.laser-border-left::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #ff0038 0%, #ff2a55 50%, #ff0038 100%);
+  box-shadow: 0 0 12px rgba(255, 0, 56, 0.8), 0 0 24px rgba(255, 0, 56, 0.4);
+  border-radius: 2px 0 0 2px;
+}
+
+.laser-border-right {
+  position: relative;
+}
+.laser-border-right::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #ff0038 0%, #ff2a55 50%, #ff0038 100%);
+  box-shadow: 0 0 12px rgba(255, 0, 56, 0.8), 0 0 24px rgba(255, 0, 56, 0.4);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HERO PAGE — Load animations & scroll-reveal transitions
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Hero text stagger entrance */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-stagger-1 { animation: heroFadeUp 0.7s ease-out 0.1s both; }
+.hero-stagger-2 { animation: heroFadeUp 0.7s ease-out 0.25s both; }
+.hero-stagger-3 { animation: heroFadeUp 0.7s ease-out 0.4s both; }
+.hero-stagger-4 { animation: heroFadeUp 0.7s ease-out 0.55s both; }
+
+/* Ambient hero glow drift */
+@keyframes glowDrift {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.6; }
+  50% { transform: translate(30px, -20px) scale(1.1); opacity: 1; }
+}
+
+.hero-glow {
+  animation: glowDrift 8s ease-in-out infinite;
+}
+
+/* Scroll-reveal system (Intersection Observer triggers .reveal-visible) */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal-on-scroll.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered delays for reveal children */
+.reveal-on-scroll.stagger-1 { transition-delay: 0.05s; }
+.reveal-on-scroll.stagger-2 { transition-delay: 0.15s; }
+.reveal-on-scroll.stagger-3 { transition-delay: 0.25s; }
+
+/* Fade-in utility */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn { animation: fadeIn 0.3s ease-out both; }
