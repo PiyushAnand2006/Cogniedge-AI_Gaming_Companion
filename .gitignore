@@ -39,6 +39,7 @@ credentials.json
 *.pt
 *.pth
 *.safetensors
+*.gguf
 *.engine
 *.plan
 models/

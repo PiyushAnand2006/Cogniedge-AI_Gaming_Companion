@@ -189,6 +189,29 @@ def test_qwen_ai_agent_fallback():
     print("[PASS] test_qwen_ai_agent_fallback passed.")
 
 
+def test_vendor_model_wrappers():
+    from ai.genie_wrapper import GenieModelWrapper
+    from ai.whisper_wrapper import WhisperModelWrapper
+    from vision.yolo_wrapper import YOLOModelWrapper
+
+    genie_wrap = GenieModelWrapper()
+    genie_status = genie_wrap.get_status()
+    assert genie_status["model_id"] == "qwen3_4b"
+    assert "ai-hub-models" in genie_status["vendor_recipe"]
+
+    whisper_wrap = WhisperModelWrapper()
+    whisper_status = whisper_wrap.get_status()
+    assert whisper_status["model_id"] == "whisper_base"
+    assert "whisper_windows_py" in whisper_status["weights_path"]
+
+    yolo_wrap = YOLOModelWrapper()
+    yolo_status = yolo_wrap.get_status()
+    assert yolo_status["model_id"] == "yolo26_det"
+    assert "yolo26_det" in yolo_status["vendor_recipe"]
+
+    print("[PASS] test_vendor_model_wrappers passed.")
+
+
 if __name__ == "__main__":
     print("Running CogniEdge Subsystem Tests...")
     test_frame_analyzer_math()
@@ -197,4 +220,5 @@ if __name__ == "__main__":
     test_adaptive_ai_compute_guard()
     test_sqlite_memory_and_effectiveness()
     test_qwen_ai_agent_fallback()
+    test_vendor_model_wrappers()
     print("ALL PRODUCTION SUBSYSTEM TESTS PASSED SUCCESSFULLY.")

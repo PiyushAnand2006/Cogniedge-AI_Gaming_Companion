@@ -1,0 +1,31 @@
+{
+  "vendor_roots": {
+    "ai_hub_models": "../../ai-hub-models",
+    "ai_hub_apps": "../../ai-hub-apps"
+  },
+  "models": {
+    "llm": {
+      "model_id": "qwen3_4b",
+      "model_name": "Qwen3-4B-Instruct-W4A16",
+      "vendor_recipe_dir": "../../ai-hub-models/src/qai_hub_models/models/qwen3_4b",
+      "genie_tutorial_dir": "../../ai-hub-apps/tutorials/llm_on_genie",
+      "default_weights_path": "../../ai-hub-models/build/models/qwen3_4b/genie_bundle",
+      "runtime": "GENIE_HEXAGON_NPU"
+    },
+    "vision": {
+      "model_id": "yolo26_det",
+      "model_name": "YOLO26-N INT8",
+      "vendor_recipe_dir": "../../ai-hub-models/src/qai_hub_models/models/yolo26_det",
+      "default_weights_path": "../../ai-hub-models/build/models/yolo26_det/yolo26n.onnx",
+      "runtime": "QNN_ONNX_NPU"
+    },
+    "whisper": {
+      "model_id": "whisper_base",
+      "model_name": "Whisper Base Quantized",
+      "vendor_recipe_dir": "../../ai-hub-models/src/qai_hub_models/models/whisper_base",
+      "app_demo_dir": "../../ai-hub-apps/whisper_windows_py",
+      "default_weights_path": "../../ai-hub-apps/whisper_windows_py/models/whisper_base.onnx",
+      "runtime": "ONNX_NPU"
+    }
+  }
+}
