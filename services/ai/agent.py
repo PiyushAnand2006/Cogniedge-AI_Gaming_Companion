@@ -13,6 +13,7 @@ import time
 from llm_provider import LocalLLMProvider, LLMResponse, LLMCapabilities
 from openai_local import OpenAILocalProvider
 from genie_provider import GenieProvider
+from llamacpp_provider import LlamaCppProvider
 from fallback_provider import FallbackReasoningProvider
 from tools import ToolRegistry
 
@@ -22,8 +23,9 @@ class CogniEdgeAIAgent:
         self.preferred_provider = preferred_provider
         self.tool_registry = ToolRegistry()
 
-        self.openai_provider = OpenAILocalProvider()
         self.genie_provider = GenieProvider()
+        self.openai_provider = OpenAILocalProvider()
+        self.llamacpp_provider = LlamaCppProvider()
         self.fallback_provider = FallbackReasoningProvider()
 
         self._active_provider: LocalLLMProvider = self._select_best_provider()
@@ -34,11 +36,19 @@ class CogniEdgeAIAgent:
             return self.genie_provider
         elif self.preferred_provider == "openai" and self.openai_provider._check_availability():
             return self.openai_provider
+        elif self.preferred_provider == "llamacpp" and self.llamacpp_provider.capabilities().is_available:
+            return self.llamacpp_provider
 
+        # Priority 1: Qualcomm Hexagon NPU via Genie SDK
         if self.genie_provider._is_available():
             return self.genie_provider
+        # Priority 2: OpenAI-compatible local server (Ollama / LM Studio)
         elif self.openai_provider._check_availability():
             return self.openai_provider
+        # Priority 3: Direct llama.cpp GGUF execution
+        elif self.llamacpp_provider.capabilities().is_available:
+            return self.llamacpp_provider
+        # Priority 4: Deterministic fallback engine
         else:
             return self.fallback_provider
 
@@ -54,6 +64,7 @@ class CogniEdgeAIAgent:
             "is_available": caps.is_available,
             "genie_available": self.genie_provider._is_available(),
             "local_endpoint_available": self.openai_provider._is_available,
+            "llamacpp_available": self.llamacpp_provider.capabilities().is_available,
         }
 
     def reason(

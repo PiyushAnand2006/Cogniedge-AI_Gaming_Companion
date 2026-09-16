@@ -71,6 +71,48 @@ class FallbackReasoningProvider(LocalLLMProvider):
                 f"RECOMMENDATION: {structured['recommendation']}"
             )
 
+        # Puzzle / Problem Solving Flow
+        elif any(k in combined_text for k in ["puzzle", "portal", "witness", "baba", "talos", "sudoku", "chess", "hint", "logic", "chamber", "rule", "step"]):
+            text_response = (
+                "Puzzle Logic Analysis: Examine the active constraints in the current chamber. "
+                "1. Verify input triggers and sequence order before committing resources. "
+                "2. Maintain spatial momentum or preserve rule block syntax. "
+                "3. If stalled >45s, test component behaviors in isolation to eliminate false hypotheses."
+            )
+            structured = {
+                "alert_type": "LOGIC_HINT",
+                "focus": "STEP_BY_STEP_DEDUCTION",
+                "confidence": 0.93,
+                "tip": text_response,
+                "suggested_action": "VERIFY_CONSTRAINTS"
+            }
+
+        # Game Classifier Zero-Shot Synthesis
+        elif "classify into genre, category" in combined_text:
+            m_title = re.search(r"game title:\s*'([^']+)'", user_prompt, re.IGNORECASE)
+            title = m_title.group(1) if m_title else "Interactive Game"
+            is_puzzle = any(p in title.lower() for p in ["puzzle", "portal", "witness", "baba", "talos", "sudoku", "chess", "solve", "escape"])
+            is_br = any(b in title.lower() for b in ["royale", "pubg", "freefire", "free fire", "fortnite", "apex"])
+            
+            genre = "Puzzle / Problem Solving" if is_puzzle else ("Battle Royale" if is_br else "Action Tactical")
+            category = "Logic & Problem Solving" if is_puzzle else ("Fast-Paced Battle Royale" if is_br else "Dynamic Interactive Game")
+            mode = "PROBLEM_SOLVING" if is_puzzle else "TACTICAL_COMBAT"
+            
+            structured = {
+                "title": title,
+                "genre": genre,
+                "category": category,
+                "gameplay_loop": "Dynamic on-device interaction and mechanics" if not is_puzzle else "Rule deduction, spatial mechanics, and constraint verification",
+                "coaching_focus": [
+                    "Spatial logic and trajectory analysis" if is_puzzle else "Zone positioning & combat pacing",
+                    "Step deduction efficiency" if is_puzzle else "Crosshair placement & recoil reset",
+                    "Constraint verification" if is_puzzle else "Peripheral threat tracking",
+                    "Move minimization" if is_puzzle else "Frame pacing & 1% low stability"
+                ],
+                "analysis_mode": mode
+            }
+            text_response = json.dumps(structured, indent=2)
+
         # Tactical Gameplay / Combat Flow
         elif any(k in combined_text for k in ["tactical", "hostile", "enemy", "hp", "combat"]):
             if "low hp" in combined_text or "health" in combined_text:

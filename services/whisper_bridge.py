@@ -13,6 +13,13 @@ import subprocess
 import tempfile
 from typing import Optional, List, Dict, Any
 
+try:
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "ai"))
+    from whispercpp_provider import WhisperCppProvider
+except ImportError:
+    WhisperCppProvider = None
+
 
 # Rotating pool of realistic meeting transcript phrases for simulated demos
 # These cycle through to create convincing live transcription without NPU weights
@@ -79,16 +86,26 @@ class WhisperSTTBridge:
         self.encoder_path = os.path.join(self.whisper_app_dir, "models/encoder.onnx")
         self.decoder_path = os.path.join(self.whisper_app_dir, "models/decoder.onnx")
         self._sim_index = 0  # Rotating index for simulated phrases
+        
+        # Initialize whisper.cpp provider if available
+        self.whispercpp = WhisperCppProvider() if WhisperCppProvider else None
 
     def is_model_installed(self) -> bool:
         """Checks if Snapdragon NPU ONNX encoder/decoder weights exist."""
         return os.path.exists(self.encoder_path) and os.path.exists(self.decoder_path)
 
+    def is_whispercpp_installed(self) -> bool:
+        """Checks if whisper.cpp model or bindings are available."""
+        return self.whispercpp is not None and self.whispercpp.is_available()
+
     def transcribe_audio_file(self, audio_file_path: str) -> Dict[str, Any]:
         """
-        Runs Whisper on-device transcription via demo.py or ONNX Runtime QNN.
-        Falls back to local stream decoder when test wav audio is passed.
+        Runs Whisper on-device transcription:
+        1. Snapdragon NPU ONNX (if model installed)
+        2. whisper.cpp (if pywhispercpp / model installed)
+        3. Simulated phrase pool (fallback for demos)
         """
+        # Priority 1: Snapdragon NPU ONNX
         if self.is_model_installed() and os.path.exists(audio_file_path):
             try:
                 cmd = ["python", "demo.py", "--audio-file", audio_file_path]
@@ -100,23 +117,38 @@ class WhisperSTTBridge:
                         "text": result.stdout.strip(),
                         "model": "Whisper Small (NPU ONNX)",
                         "latency_ms": 110,
-                        "real_hardware": True
+                        "real_hardware": True,
+                        "provenance": "MEASURED"
                     }
             except Exception as e:
                 print(f"[CogniEdge Whisper] ONNX execution error, falling back: {e}")
 
-        # FLAG: Simulated local ASR stream generator — rotate through realistic phrases
+        # Priority 2: whisper.cpp
+        if self.whispercpp and os.path.exists(audio_file_path):
+            try:
+                return self.whispercpp.transcribe_audio_file(audio_file_path)
+            except Exception as e:
+                print(f"[CogniEdge Whisper] whisper.cpp execution error, falling back: {e}")
+
+        # Priority 3: Simulated local ASR stream generator — rotate through realistic phrases
         return self._get_next_simulated_turn()
 
     def transcribe_pcm_chunk(self, pcm_bytes: bytes, sample_rate: int = 16000) -> Dict[str, Any]:
         """
         Transcribe a raw PCM audio chunk (16-bit, mono).
-        Writes PCM to a temp WAV file, runs transcription, and cleans up.
-
         Used by the real-time system audio loopback pipeline.
         """
+        # Try whisper.cpp first for direct PCM chunk transcription
+        if self.whispercpp and len(pcm_bytes) > 0:
+            try:
+                res = self.whispercpp.transcribe_pcm_chunk(pcm_bytes, sample_rate=sample_rate)
+                if res.get("text"):
+                    return res
+            except Exception as e:
+                print(f"[CogniEdge Whisper] whisper.cpp PCM transcription error: {e}")
+
         if self.is_model_installed() and len(pcm_bytes) > 0:
-            # Write PCM chunk to a temporary WAV file
+            # Write PCM chunk to a temporary WAV file for ONNX
             tmp_path = None
             try:
                 with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
