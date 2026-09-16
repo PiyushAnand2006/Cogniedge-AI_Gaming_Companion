@@ -14,7 +14,7 @@ interface StatusPillProps {
   ariaLabel?: string;
 }
 
-export const StatusPill: React.FC<StatusPillProps> = ({
+export const StatusPill: React.FC<StatusPillProps> = React.memo(({
   label,
   variant = 'neutral',
   icon,
@@ -56,7 +56,7 @@ export const StatusPill: React.FC<StatusPillProps> = ({
     },
   };
 
-  const style = variantStyles[variant];
+  const style = variantStyles[variant] || variantStyles.neutral;
 
   return (
     <div
@@ -76,4 +76,6 @@ export const StatusPill: React.FC<StatusPillProps> = ({
       <span className={`font-medium ${style.text}`}>{label}</span>
     </div>
   );
-};
+});
+
+StatusPill.displayName = 'StatusPill';

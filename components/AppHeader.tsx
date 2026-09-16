@@ -4,10 +4,20 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export const AppHeader: React.FC = () => {
+const NAV_LINKS = [
+  { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
+  { name: 'Live Session', href: '/live', icon: 'sensors' },
+  { name: 'Performance Doctor', href: '/performance', icon: 'medical_services' },
+  { name: 'Game Coaching', href: '/gaming-coaching', icon: 'sports_esports' },
+  { name: 'Player Memory', href: '/memory', icon: 'psychology' },
+  { name: 'FPS Benchmark', href: '/benchmark', icon: 'speed' },
+  { name: 'Settings', href: '/settings', icon: 'settings' },
+];
+
+export const AppHeader: React.FC = React.memo(() => {
   const pathname = usePathname();
   const [npuTops, setNpuTops] = useState<number>(45.2);
-  const [maxTops] = useState<number>(80.0);
+  const maxTops = 80.0;
   const [serviceStatus, setServiceStatus] = useState<{ genie: string; whisper: string; serviceOnline: boolean }>({
     genie: 'Active',
     whisper: 'Ready',
@@ -38,25 +48,13 @@ export const AppHeader: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (pathname === '/' || pathname === '/login') return null;
-
-  const navLinks = [
-    { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-    { name: 'Live Session', href: '/live', icon: 'sensors' },
-    { name: 'Performance Doctor', href: '/performance', icon: 'medical_services' },
-    { name: 'Game Coaching', href: '/gaming-coaching', icon: 'sports_esports' },
-    { name: 'Player Memory', href: '/memory', icon: 'psychology' },
-    { name: 'FPS Benchmark', href: '/benchmark', icon: 'speed' },
-    { name: 'Settings', href: '/settings', icon: 'settings' },
-  ];
-
-  const isActive = (href: string) => {
+  const isActive = React.useCallback((href: string) => {
     if (href === '/' && pathname === '/') return true;
     if (href !== '/' && pathname.startsWith(href)) return true;
     return false;
-  };
+  }, [pathname]);
 
-  const launchNativeOverlay = async () => {
+  const launchNativeOverlay = React.useCallback(async () => {
     try {
       await fetch('http://127.0.0.1:8088/overlay/launch', { method: 'POST' });
     } catch {
@@ -64,7 +62,9 @@ export const AppHeader: React.FC = () => {
         (window as unknown as { electronAPI: { launchOverlay: () => void } }).electronAPI.launchOverlay();
       }
     }
-  };
+  }, []);
+
+  if (pathname === '/' || pathname === '/login') return null;
 
   return (
     <header className="fixed top-0 left-0 right-0 w-full z-50 bg-gaming-panel/95 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.8)] border-b border-gaming-border">
@@ -85,7 +85,7 @@ export const AppHeader: React.FC = () => {
               <span className="font-headline-sm text-headline-sm tracking-tight text-gaming-white font-bold">
                 CogniEdge
               </span>
-              <span className="font-label-sm text-label-sm uppercase px-space-xs py-0.5 bg-gaming-panel-high text-gaming-red-bright border border-gaming-red/30 rounded font-mono">
+              <span className="font-label-sm text-label-sm uppercase px-space-xs py-0.5 bg-gaming-panel-high text-gaming-red-bright border border-gaming-red/30 rounded font-mono font-medium">
                 Snapdragon X Elite NPU
               </span>
             </div>
@@ -95,7 +95,7 @@ export const AppHeader: React.FC = () => {
             <span className="w-1.5 h-1.5 rounded-full bg-gaming-red animate-ping" />
             <span className="text-gaming-white font-medium">100% On-Device</span>
             <span className="text-gaming-border">•</span>
-            <span>0 FPS Contention</span>
+            <span className="font-normal">0 FPS Contention</span>
           </div>
         </div>
 
@@ -104,15 +104,15 @@ export const AppHeader: React.FC = () => {
           className="hidden lg:flex items-center gap-1 px-1.5 py-1 bg-gaming-carbon border border-gaming-border rounded-xl shadow-inner"
           aria-label="Main Navigation"
         >
-          {navLinks.map((link) => {
+          {NAV_LINKS.map((link) => {
             const active = isActive(link.href);
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`font-headline-sm text-label-md px-3 py-1.5 transition-all whitespace-nowrap rounded-lg flex items-center gap-1.5 ${
+                className={`font-headline-sm text-label-md px-3 py-1.5 transition-all whitespace-nowrap rounded-lg flex items-center gap-1.5 font-medium ${
                   active
-                    ? 'bg-gaming-red text-white font-bold shadow-[0_0_14px_rgba(255,0,56,0.5)]'
+                    ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
                     : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-panel-high'
                 }`}
               >
@@ -126,7 +126,7 @@ export const AppHeader: React.FC = () => {
             type="button"
             onClick={launchNativeOverlay}
             title="Spawns transparent, zero-FPS PyQt Gaming HUD overlay process"
-            className="font-headline-sm text-label-md px-space-sm py-1.5 text-gaming-red-bright hover:bg-gaming-red hover:text-white transition-all whitespace-nowrap rounded-lg border border-gaming-red/40 flex items-center gap-1 font-bold shadow-[0_0_10px_rgba(255,0,56,0.2)] ml-1"
+            className="font-headline-sm text-label-md px-space-sm py-1.5 text-gaming-red-bright hover:bg-gaming-red hover:text-white transition-all whitespace-nowrap rounded-lg border border-gaming-red/40 flex items-center gap-1 font-medium shadow-[0_0_10px_rgba(255,0,56,0.2)] ml-1"
           >
             <span className="material-symbols-outlined text-[16px]">sports_esports</span>
             <span>Launch HUD</span>
@@ -180,4 +180,6 @@ export const AppHeader: React.FC = () => {
       </div>
     </header>
   );
-};
+});
+
+AppHeader.displayName = 'AppHeader';

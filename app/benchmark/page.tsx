@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 interface BenchResult {
   baseline_fps: number;
+  provenance?: 'MEASURED' | 'DEMO';
   cogniedge: {
     name: string;
     type: string;
@@ -29,102 +30,66 @@ interface BenchResult {
   }>;
 }
 
+const DEFAULT_BENCHMARK_FALLBACK: BenchResult = {
+  baseline_fps: 144.0,
+  provenance: 'DEMO',
+  cogniedge: {
+    name: 'CogniEdge Hexagon NPU HUD',
+    type: 'DirectML / QNN Int4 NPU Enclave',
+    measured_fps: 144.0,
+    fps_drop_avg: 0.0,
+    fps_drop_max: 0.0,
+    gpu_contention_pct: 0.0,
+    vram_mb: 0,
+    frame_time_avg_ms: 6.94,
+    frame_time_p99_ms: 7.12,
+  },
+  gpu_overlays: [
+    {
+      name: 'Generic Cloud Overlay (Electron)',
+      type: 'Chromium GPU Compositor',
+      measured_fps: 131.2,
+      avg_fps_drop: 12.8,
+      max_fps_drop: 26.4,
+      gpu_contention_pct: 14.8,
+      vram_mb: 680,
+      frame_time_avg_ms: 7.62,
+      frame_time_p99_ms: 14.8,
+    },
+    {
+      name: 'Local GPU CUDA Vision Companion',
+      type: 'DirectX 3D Injection + PyTorch CUDA',
+      measured_fps: 118.6,
+      avg_fps_drop: 25.4,
+      max_fps_drop: 48.0,
+      gpu_contention_pct: 28.5,
+      vram_mb: 1850,
+      frame_time_avg_ms: 8.43,
+      frame_time_p99_ms: 22.4,
+    },
+  ],
+};
+
 export default function BenchmarkPage() {
   const [running, setRunning] = useState<boolean>(false);
   const [benchResult, setBenchResult] = useState<BenchResult | null>(null);
 
-  const runBenchmark = async () => {
+  const runBenchmark = React.useCallback(async () => {
     setRunning(true);
     try {
       const res = await fetch('http://127.0.0.1:8088/benchmark/run', { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
-        setBenchResult(data);
+        setBenchResult({ ...data, provenance: 'MEASURED' });
       } else {
-        // Fallback realistic benchmark data
-        setBenchResult({
-          baseline_fps: 144.0,
-          cogniedge: {
-            name: 'CogniEdge Hexagon NPU HUD',
-            type: 'DirectML / QNN Int4 NPU Enclave',
-            measured_fps: 144.0,
-            fps_drop_avg: 0.0,
-            fps_drop_max: 0.0,
-            gpu_contention_pct: 0.0,
-            vram_mb: 0,
-            frame_time_avg_ms: 6.94,
-            frame_time_p99_ms: 7.12,
-          },
-          gpu_overlays: [
-            {
-              name: 'Generic Cloud Overlay (Electron)',
-              type: 'Chromium GPU Compositor',
-              measured_fps: 131.2,
-              avg_fps_drop: 12.8,
-              max_fps_drop: 26.4,
-              gpu_contention_pct: 14.8,
-              vram_mb: 680,
-              frame_time_avg_ms: 7.62,
-              frame_time_p99_ms: 14.8,
-            },
-            {
-              name: 'Local GPU CUDA Vision Companion',
-              type: 'DirectX 3D Injection + PyTorch CUDA',
-              measured_fps: 118.6,
-              avg_fps_drop: 25.4,
-              max_fps_drop: 48.0,
-              gpu_contention_pct: 28.5,
-              vram_mb: 1850,
-              frame_time_avg_ms: 8.43,
-              frame_time_p99_ms: 22.4,
-            },
-          ],
-        });
+        setBenchResult(DEFAULT_BENCHMARK_FALLBACK);
       }
     } catch {
-      // Fallback
-      setBenchResult({
-        baseline_fps: 144.0,
-        cogniedge: {
-          name: 'CogniEdge Hexagon NPU HUD',
-          type: 'DirectML / QNN Int4 NPU Enclave',
-          measured_fps: 144.0,
-          fps_drop_avg: 0.0,
-          fps_drop_max: 0.0,
-          gpu_contention_pct: 0.0,
-          vram_mb: 0,
-          frame_time_avg_ms: 6.94,
-          frame_time_p99_ms: 7.12,
-        },
-        gpu_overlays: [
-          {
-            name: 'Generic Cloud Overlay (Electron)',
-            type: 'Chromium GPU Compositor',
-            measured_fps: 131.2,
-            avg_fps_drop: 12.8,
-            max_fps_drop: 26.4,
-            gpu_contention_pct: 14.8,
-            vram_mb: 680,
-            frame_time_avg_ms: 7.62,
-            frame_time_p99_ms: 14.8,
-          },
-          {
-            name: 'Local GPU CUDA Vision Companion',
-            type: 'DirectX 3D Injection + PyTorch CUDA',
-            measured_fps: 118.6,
-            avg_fps_drop: 25.4,
-            max_fps_drop: 48.0,
-            gpu_contention_pct: 28.5,
-            vram_mb: 1850,
-            frame_time_avg_ms: 8.43,
-            frame_time_p99_ms: 22.4,
-          },
-        ],
-      });
+      setBenchResult(DEFAULT_BENCHMARK_FALLBACK);
     } finally {
       setRunning(false);
     }
-  };
+  }, []);
 
   const comparisonCards = [
     {
@@ -179,17 +144,17 @@ export default function BenchmarkPage() {
       <div className="p-space-lg rounded-2xl bg-gaming-panel border border-gaming-border shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-space-md clip-chamfer-tl-br laser-border-left">
         <div>
           <div className="flex items-center gap-space-xs mb-1 font-mono text-xs">
-            <span className="px-2 py-0.5 rounded bg-gaming-red/20 text-gaming-red-bright border border-gaming-red/40 uppercase font-bold">
+            <span className="px-2 py-0.5 rounded bg-gaming-red/20 text-gaming-red-bright border border-gaming-red/40 uppercase font-medium">
               ZERO-CONTENION BENCHMARK
             </span>
-            <span className="text-gaming-slate">
+            <span className="text-gaming-slate font-normal">
               Snapdragon X Elite Hexagon NPU vs Host GPU Contention Lab
             </span>
           </div>
           <h1 className="font-headline-lg text-headline-lg text-gaming-white font-bold tracking-tight">
             HEXAGON NPU BENCHMARK SUITE
           </h1>
-          <p className="font-body-md text-body-md text-gaming-slate mt-0.5">
+          <p className="font-body-md text-body-md text-gaming-slate mt-0.5 font-normal">
             Empirical validation proving 0.0 FPS drop, 0% GPU contention, and zero VRAM footprint when executing vision &amp; LLM reasoning on Qualcomm NPU.
           </p>
         </div>
@@ -199,7 +164,7 @@ export default function BenchmarkPage() {
             type="button"
             onClick={runBenchmark}
             disabled={running}
-            className="px-space-lg py-space-sm bg-gaming-red text-white font-headline-sm text-label-lg rounded-lg shadow-[0_0_18px_rgba(255,0,56,0.5)] hover:shadow-[0_0_26px_rgba(255,0,56,0.75)] hover:bg-gaming-red-bright transition-all font-bold cursor-pointer flex items-center gap-2"
+            className="px-space-lg py-space-sm bg-gaming-red text-white font-headline-sm text-label-lg rounded-lg shadow-[0_0_18px_rgba(255,0,56,0.5)] hover:shadow-[0_0_26px_rgba(255,0,56,0.75)] hover:bg-gaming-red-bright transition-all font-medium cursor-pointer flex items-center gap-2"
           >
             <span className="material-symbols-outlined text-[20px]">{running ? 'refresh' : 'play_arrow'}</span>
             <span>{running ? 'Running 60s Telemetry Pass...' : 'Run Live Benchmark'}</span>
@@ -220,16 +185,16 @@ export default function BenchmarkPage() {
           >
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-mono text-gaming-slate uppercase block font-bold truncate max-w-[170px]">
+                <span className="text-[11px] font-mono text-gaming-slate uppercase block font-medium truncate max-w-[170px]">
                   {card.name}
                 </span>
                 {card.isCogniEdge && (
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-gaming-red text-white shadow-[0_0_8px_rgba(255,0,56,0.5)]">
+                  <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-gaming-red text-white shadow-[0_0_8px_rgba(255,0,56,0.5)]">
                     0% DROP
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-mono text-gaming-slate block mb-4">
+              <span className="text-[10px] font-mono text-gaming-slate block mb-4 font-normal">
                 {card.type}
               </span>
 
@@ -237,25 +202,25 @@ export default function BenchmarkPage() {
                 <span className="text-3xl font-bold" style={{ color: card.color }}>
                   {card.fps.toFixed(1)}
                 </span>
-                <span className="text-xs text-gaming-slate">FPS</span>
+                <span className="text-xs text-gaming-slate font-normal">FPS</span>
               </div>
 
               <div className="space-y-2 font-mono text-xs pt-2 border-t border-gaming-border">
                 <div className="flex items-center justify-between">
-                  <span className="text-gaming-slate">GPU Contention:</span>
-                  <span className={card.gpuPct === 0 ? 'text-emerald-400 font-bold' : 'text-gaming-white'}>
+                  <span className="text-gaming-slate font-normal">GPU Contention:</span>
+                  <span className={card.gpuPct === 0 ? 'text-emerald-400 font-bold' : 'text-gaming-white font-normal'}>
                     {card.gpuPct.toFixed(1)}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gaming-slate">VRAM Usage:</span>
-                  <span className={card.vram === 0 ? 'text-emerald-400 font-bold' : 'text-gaming-white'}>
+                  <span className="text-gaming-slate font-normal">VRAM Usage:</span>
+                  <span className={card.vram === 0 ? 'text-emerald-400 font-bold' : 'text-gaming-white font-normal'}>
                     {card.vram} MB
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gaming-slate">CPU Overhead:</span>
-                  <span className="text-gaming-white">{card.cpu.toFixed(1)}%</span>
+                  <span className="text-gaming-slate font-normal">CPU Overhead:</span>
+                  <span className="text-gaming-white font-normal">{card.cpu.toFixed(1)}%</span>
                 </div>
               </div>
             </div>
@@ -284,47 +249,47 @@ export default function BenchmarkPage() {
         <div className="overflow-x-auto">
           <table className="w-full font-label-md text-label-md font-mono">
             <thead>
-              <tr className="text-left border-b border-gaming-border text-gaming-slate font-bold">
-                <th className="px-space-sm py-space-xs">Overlay Architecture</th>
-                <th className="px-space-sm py-space-xs">Hardware Engine</th>
-                <th className="px-space-sm py-space-xs text-right">Measured FPS</th>
-                <th className="px-space-sm py-space-xs text-right">Avg Drop</th>
-                <th className="px-space-sm py-space-xs text-right">GPU %</th>
-                <th className="px-space-sm py-space-xs text-right">VRAM</th>
-                <th className="px-space-sm py-space-xs text-right">Avg Frame Time</th>
-                <th className="px-space-sm py-space-xs text-right">P99 Frame Time</th>
+              <tr className="text-left border-b border-gaming-border text-gaming-slate font-medium">
+                <th className="px-space-sm py-space-xs font-medium">Overlay Architecture</th>
+                <th className="px-space-sm py-space-xs font-medium">Hardware Engine</th>
+                <th className="px-space-sm py-space-xs text-right font-medium">Measured FPS</th>
+                <th className="px-space-sm py-space-xs text-right font-medium">Avg Drop</th>
+                <th className="px-space-sm py-space-xs text-right font-medium">GPU %</th>
+                <th className="px-space-sm py-space-xs text-right font-medium">VRAM</th>
+                <th className="px-space-sm py-space-xs text-right font-medium">Avg Frame Time</th>
+                <th className="px-space-sm py-space-xs text-right font-medium">P99 Frame Time</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="border-b border-gaming-border/60 bg-gaming-red/10 font-bold">
-                <td className="px-space-sm py-space-sm text-gaming-white">CogniEdge On-Device NPU HUD</td>
-                <td className="px-space-sm py-space-sm text-gaming-red-bright">Hexagon NPU Int4 (DirectML/QNN)</td>
+              <tr className="border-b border-gaming-border/60 bg-gaming-red/10">
+                <td className="px-space-sm py-space-sm text-gaming-white font-medium">CogniEdge On-Device NPU HUD</td>
+                <td className="px-space-sm py-space-sm text-gaming-red-bright font-medium">Hexagon NPU Int4 (DirectML/QNN)</td>
                 <td className="px-space-sm py-space-sm text-right text-gaming-red-bright font-bold">144.0</td>
-                <td className="px-space-sm py-space-sm text-right text-emerald-400">0.0</td>
-                <td className="px-space-sm py-space-sm text-right text-emerald-400">0.00%</td>
-                <td className="px-space-sm py-space-sm text-right text-emerald-400">0 MB</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-white">6.94 ms</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-white">7.12 ms</td>
+                <td className="px-space-sm py-space-sm text-right text-emerald-400 font-medium">0.0</td>
+                <td className="px-space-sm py-space-sm text-right text-emerald-400 font-medium">0.00%</td>
+                <td className="px-space-sm py-space-sm text-right text-emerald-400 font-medium">0 MB</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-white font-normal">6.94 ms</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-white font-normal">7.12 ms</td>
               </tr>
               <tr className="border-b border-gaming-border/30 hover:bg-gaming-panel-high/50">
-                <td className="px-space-sm py-space-sm text-gaming-white">Generic Cloud Overlay (Electron)</td>
-                <td className="px-space-sm py-space-sm text-gaming-slate">Chromium GPU Compositor</td>
+                <td className="px-space-sm py-space-sm text-gaming-white font-normal">Generic Cloud Overlay (Electron)</td>
+                <td className="px-space-sm py-space-sm text-gaming-slate font-normal">Chromium GPU Compositor</td>
                 <td className="px-space-sm py-space-sm text-right text-gaming-white font-bold">131.2</td>
-                <td className="px-space-sm py-space-sm text-right text-amber-400">-12.8</td>
-                <td className="px-space-sm py-space-sm text-right text-amber-400">14.8%</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-slate">680 MB</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-slate">7.62 ms</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-slate">14.8 ms</td>
+                <td className="px-space-sm py-space-sm text-right text-amber-400 font-medium">-12.8</td>
+                <td className="px-space-sm py-space-sm text-right text-amber-400 font-medium">14.8%</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-slate font-normal">680 MB</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-slate font-normal">7.62 ms</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-slate font-normal">14.8 ms</td>
               </tr>
               <tr className="border-b border-gaming-border/30 hover:bg-gaming-panel-high/50">
-                <td className="px-space-sm py-space-sm text-gaming-white">Local GPU CUDA Vision Assistant</td>
-                <td className="px-space-sm py-space-sm text-gaming-slate">DirectX 3D Injection + PyTorch CUDA</td>
+                <td className="px-space-sm py-space-sm text-gaming-white font-normal">Local GPU CUDA Vision Assistant</td>
+                <td className="px-space-sm py-space-sm text-gaming-slate font-normal">DirectX 3D Injection + PyTorch CUDA</td>
                 <td className="px-space-sm py-space-sm text-right text-gaming-white font-bold">118.6</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-red-bright">-25.4</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-red-bright">28.5%</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-slate">1,850 MB</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-slate">8.43 ms</td>
-                <td className="px-space-sm py-space-sm text-right text-gaming-slate">22.4 ms</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-red-bright font-medium">-25.4</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-red-bright font-medium">28.5%</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-slate font-normal">1,850 MB</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-slate font-normal">8.43 ms</td>
+                <td className="px-space-sm py-space-sm text-right text-gaming-slate font-normal">22.4 ms</td>
               </tr>
             </tbody>
           </table>

@@ -1,0 +1,38 @@
+/**
+ * CogniEdge Design System - Unified 3-Tier Typography Tokens
+ * 
+ * Strict Weight System:
+ * - Headers: font-weight 700 (--font-weight-header, font-header / font-bold)
+ * - Subheaders & Labels: font-weight 500 (--font-weight-subheader, font-subheader / font-medium)
+ * - Body text & Paragraphs: font-weight 400 (--font-weight-body, font-body / font-normal)
+ * 
+ * No other font-weight values are permitted in this codebase.
+ */
+
+:root {
+  --font-weight-header: 700;
+  --font-weight-subheader: 500;
+  --font-weight-body: 400;
+}
+
+/* Default Semantic Element Font Weights */
+h1, h2, h3 {
+  font-weight: var(--font-weight-header);
+}
+
+h4, h5, h6 {
+  font-weight: var(--font-weight-subheader);
+}
+
+/* Shared Utility Classes */
+.font-header {
+  font-weight: 700 !important;
+}
+
+.font-subheader {
+  font-weight: 500 !important;
+}
+
+.font-body-weight {
+  font-weight: 400 !important;
+}

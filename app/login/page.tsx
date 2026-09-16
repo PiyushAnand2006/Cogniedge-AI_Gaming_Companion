@@ -52,7 +52,7 @@ export default function LoginPage() {
               <h1 className="text-3xl font-bold tracking-tight text-white mb-2 font-headline">
                 {isSignUp ? 'Create an account' : 'Welcome back'}
               </h1>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-sm font-normal">
                 {isSignUp
                   ? 'Enter your details to create your account'
                   : 'Please enter your details to sign in'}
@@ -73,7 +73,7 @@ export default function LoginPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="Full Name"
-                      className="w-full bg-transparent text-white placeholder:text-gray-500 text-sm focus:outline-none"
+                      className="w-full bg-transparent text-white placeholder:text-gray-500 text-sm focus:outline-none font-normal"
                     />
                   </div>
                 </div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email address"
-                    className="w-full bg-transparent text-white placeholder:text-gray-500 text-sm focus:outline-none"
+                    className="w-full bg-transparent text-white placeholder:text-gray-500 text-sm focus:outline-none font-normal"
                   />
                 </div>
               </div>
@@ -108,7 +108,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
-                    className="w-full bg-transparent text-white placeholder:text-gray-500 text-sm focus:outline-none"
+                    className="w-full bg-transparent text-white placeholder:text-gray-500 text-sm focus:outline-none font-normal"
                   />
                   <button
                     type="button"
@@ -125,7 +125,7 @@ export default function LoginPage() {
 
               {/* Options: Remember Me & Forgot Password */}
               <div className="flex items-center justify-between text-xs pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-gray-300">
+                <label className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-gray-300 font-normal">
                   <input
                     type="checkbox"
                     checked={rememberMe}
@@ -147,7 +147,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-semibold text-sm tracking-wide transition-all duration-200 shadow-[0_4px_20px_rgba(79,70,229,0.35)] hover:shadow-[0_6px_28px_rgba(79,70,229,0.5)] flex items-center justify-center gap-2 group disabled:opacity-60 cursor-pointer"
+                className="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-medium text-sm tracking-wide transition-all duration-200 shadow-[0_4px_20px_rgba(79,70,229,0.35)] hover:shadow-[0_6px_28px_rgba(79,70,229,0.5)] flex items-center justify-center gap-2 group disabled:opacity-60 cursor-pointer"
               >
                 <span>{isLoading ? 'Please wait...' : isSignUp ? 'Sign Up' : 'Sign In'}</span>
                 <span className="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">
@@ -162,7 +162,7 @@ export default function LoginPage() {
                 <div className="w-full border-t border-white/10" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-[#0f1422] px-3 text-gray-500 font-mono tracking-wider">
+                <span className="bg-[#0f1422] px-3 text-gray-500 font-mono tracking-wider font-medium">
                   OR CONTINUE WITH
                 </span>
               </div>
@@ -204,7 +204,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setIsSignUp(false)}
-                  className="text-indigo-400 hover:text-indigo-300 font-semibold ml-1 cursor-pointer"
+                  className="text-indigo-400 hover:text-indigo-300 font-medium ml-1 cursor-pointer"
                 >
                   Sign in
                 </button>
@@ -215,7 +215,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setIsSignUp(true)}
-                  className="text-indigo-400 hover:text-indigo-300 font-semibold ml-1 cursor-pointer"
+                  className="text-indigo-400 hover:text-indigo-300 font-medium ml-1 cursor-pointer"
                 >
                   Sign up
                 </button>
@@ -246,7 +246,7 @@ export default function LoginPage() {
             </div>
 
             {/* Project Name */}
-            <h2 className="text-3xl font-extrabold tracking-tight text-white mb-3 font-headline">
+            <h2 className="text-3xl font-bold tracking-tight text-white mb-3 font-headline">
               CogniEdge
             </h2>
 
@@ -258,7 +258,7 @@ export default function LoginPage() {
             {/* Return to App Button */}
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-gray-300 hover:text-white transition-all"
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/[0.05] hover:bg-white/[0.1] border border-white/10 text-xs text-gray-300 hover:text-white transition-all font-medium"
             >
               <span>Explore Platform</span>
               <span className="material-symbols-outlined text-[14px]">arrow_forward</span>

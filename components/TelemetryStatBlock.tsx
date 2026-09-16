@@ -15,7 +15,34 @@ interface TelemetryStatBlockProps {
   ariaLabel?: string;
 }
 
-export const TelemetryStatBlock: React.FC<TelemetryStatBlockProps> = ({
+const colorMap = {
+  primary: {
+    text: 'text-gaming-red-bright',
+    bgBar: 'bg-gaming-red',
+    glow: 'shadow-[0_0_8px_rgba(255,0,56,0.8)]',
+    iconText: 'text-gaming-red',
+  },
+  tertiary: {
+    text: 'text-gaming-white',
+    bgBar: 'bg-gaming-red',
+    glow: 'shadow-[0_0_8px_rgba(255,0,56,0.6)]',
+    iconText: 'text-gaming-red-bright',
+  },
+  secondary: {
+    text: 'text-gaming-white',
+    bgBar: 'bg-gaming-red',
+    glow: 'shadow-[0_0_8px_rgba(255,0,56,0.6)]',
+    iconText: 'text-gaming-red',
+  },
+  error: {
+    text: 'text-gaming-red',
+    bgBar: 'bg-gaming-red',
+    glow: 'shadow-[0_0_8px_rgba(255,0,56,0.8)]',
+    iconText: 'text-gaming-red',
+  },
+};
+
+export const TelemetryStatBlock: React.FC<TelemetryStatBlockProps> = React.memo(({
   label,
   value,
   unit,
@@ -27,34 +54,7 @@ export const TelemetryStatBlock: React.FC<TelemetryStatBlockProps> = ({
   role = 'region',
   ariaLabel,
 }) => {
-  const colorMap = {
-    primary: {
-      text: 'text-gaming-red-bright',
-      bgBar: 'bg-gaming-red',
-      glow: 'shadow-[0_0_8px_rgba(255,0,56,0.8)]',
-      iconText: 'text-gaming-red',
-    },
-    tertiary: {
-      text: 'text-gaming-white',
-      bgBar: 'bg-gaming-red',
-      glow: 'shadow-[0_0_8px_rgba(255,0,56,0.6)]',
-      iconText: 'text-gaming-red-bright',
-    },
-    secondary: {
-      text: 'text-gaming-white',
-      bgBar: 'bg-gaming-red',
-      glow: 'shadow-[0_0_8px_rgba(255,0,56,0.6)]',
-      iconText: 'text-gaming-red',
-    },
-    error: {
-      text: 'text-gaming-red',
-      bgBar: 'bg-gaming-red',
-      glow: 'shadow-[0_0_8px_rgba(255,0,56,0.8)]',
-      iconText: 'text-gaming-red',
-    },
-  };
-
-  const style = colorMap[accentColor];
+  const style = colorMap[accentColor] || colorMap.primary;
 
   return (
     <div
@@ -65,7 +65,7 @@ export const TelemetryStatBlock: React.FC<TelemetryStatBlockProps> = ({
       <div className="absolute top-0 right-0 w-24 h-24 bg-gaming-red/5 rounded-full blur-xl pointer-events-none group-hover:bg-gaming-red/10 transition-all" />
       
       <div className="flex items-center justify-between gap-space-sm mb-space-xs relative z-10">
-        <span className="font-label-sm text-label-sm text-gaming-slate uppercase tracking-wider flex items-center gap-1.5 font-semibold">
+        <span className="font-label-sm text-label-sm text-gaming-slate uppercase tracking-wider flex items-center gap-1.5 font-medium">
           {icon && (
             <span className={`material-symbols-outlined text-[16px] ${style.iconText}`} aria-hidden="true">
               {icon}
@@ -102,4 +102,6 @@ export const TelemetryStatBlock: React.FC<TelemetryStatBlockProps> = ({
       )}
     </div>
   );
-};
+});
+
+TelemetryStatBlock.displayName = 'TelemetryStatBlock';

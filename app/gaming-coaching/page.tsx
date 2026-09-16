@@ -8,6 +8,7 @@ export default function GamingCoachingPage() {
   const [activeTab, setActiveTab] = useState<'summary' | 'mistakes' | 'weapons' | 'timeline'>('summary');
   const [sessions, setSessions] = useState<any[]>([]);
   const [selectedSession, setSelectedSession] = useState<any>(null);
+  const [isLiveConnected, setIsLiveConnected] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -15,31 +16,34 @@ export default function GamingCoachingPage() {
         const res = await fetch('http://127.0.0.1:8088/sessions');
         if (res.ok) {
           const data = await res.json();
-          setSessions(data);
-          if (data.length > 0) setSelectedSession(data[0]);
+          if (Array.isArray(data) && data.length > 0) {
+            setSessions(data);
+            setSelectedSession(data[0]);
+            setIsLiveConnected(true);
+          }
         }
       } catch {
-        // Fallback session
+        setIsLiveConnected(false);
       }
     };
     fetchSessions();
   }, []);
 
-  const fallbackSession = {
-    id: 'sess_live_cyberpunk',
-    game_title: 'Cyberpunk 2077',
-    start_time: Date.now() / 1000 - 1800,
-    duration_s: 1800,
-    avg_fps: 138.4,
-    one_pct_low: 94.6,
-    stutter_count: 2,
-    kills: 24,
-    deaths: 5,
-    coach_rating: 'A-',
-    summary: 'Strong engagement pacing in mid-range combat. Critical vulnerability detected in sub-30% HP duels in East Corridor.',
-  };
-
-  const active = selectedSession || fallbackSession;
+  const active = React.useMemo(() => {
+    return selectedSession || {
+      id: 'sess_live_cyberpunk',
+      game_title: 'Cyberpunk 2077',
+      start_time: Date.now() / 1000 - 1800,
+      duration_s: 1800,
+      avg_fps: 138.4,
+      one_pct_low: 94.6,
+      stutter_count: 2,
+      kills: 24,
+      deaths: 5,
+      coach_rating: 'A-',
+      summary: 'Strong engagement pacing in mid-range combat. Critical vulnerability detected in sub-30% HP duels in East Corridor.',
+    };
+  }, [selectedSession]);
 
   return (
     <div className="min-h-screen bg-gaming-bg text-gaming-white pt-20 pb-16 px-gutter-desktop max-w-[1760px] mx-auto flex flex-col gap-space-lg font-sans">
@@ -47,30 +51,30 @@ export default function GamingCoachingPage() {
       <div className="p-space-lg rounded-2xl bg-gaming-panel border border-gaming-border shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-space-md clip-chamfer-tl-br laser-border-left">
         <div>
           <div className="flex items-center gap-space-xs mb-1 font-mono text-xs">
-            <span className="px-2 py-0.5 rounded bg-gaming-red/20 text-gaming-red-bright border border-gaming-red/40 uppercase font-bold">
-              POST-GAME ANALYSIS
+            <span className="px-2 py-0.5 rounded bg-gaming-red/20 text-gaming-red-bright border border-gaming-red/40 uppercase font-medium">
+              {isLiveConnected ? 'LIVE SQLITE LOG ARCHIVE' : 'DEMO DEBRIEF ARCHIVE'}
             </span>
-            <span className="text-gaming-slate">
+            <span className="text-gaming-slate font-normal">
               Cross-Domain Intelligence (Player Behavior + Machine Performance)
             </span>
           </div>
           <h1 className="font-headline-lg text-headline-lg text-gaming-white font-bold tracking-tight">
             SESSION COACHING DEBRIEF // MATCH #APX-7829-X
           </h1>
-          <p className="font-body-md text-body-md text-gaming-slate mt-0.5">
+          <p className="font-body-md text-body-md text-gaming-slate mt-0.5 font-normal">
             Qwen3-4B post-session evaluation correlating combat deaths with real-time frame pacing.
           </p>
         </div>
 
         <div className="flex items-center gap-space-md font-mono shrink-0">
           <div className="p-space-sm rounded-xl bg-gaming-carbon border border-gaming-border flex items-center gap-3">
-            <span className="text-gaming-slate text-xs uppercase">Overall Rating:</span>
+            <span className="text-gaming-slate text-xs uppercase font-medium">Overall Rating:</span>
             <span className="text-2xl font-bold text-gaming-red-bright">{active.coach_rating || 'A-'}</span>
           </div>
           <button
             type="button"
             onClick={() => window.print()}
-            className="px-4 py-2 rounded-lg bg-gaming-panel-highest hover:bg-gaming-border text-gaming-white font-headline-sm text-xs font-bold border border-gaming-border transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg bg-gaming-panel-highest hover:bg-gaming-border text-gaming-white font-headline-sm text-xs font-medium border border-gaming-border transition-colors flex items-center gap-1.5"
           >
             <span className="material-symbols-outlined text-[16px]">download</span>
             <span>Export Intel</span>
@@ -115,7 +119,7 @@ export default function GamingCoachingPage() {
         <button
           type="button"
           onClick={() => setActiveTab('summary')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'summary'
               ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
               : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
@@ -127,7 +131,7 @@ export default function GamingCoachingPage() {
         <button
           type="button"
           onClick={() => setActiveTab('mistakes')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'mistakes'
               ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
               : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
@@ -139,7 +143,7 @@ export default function GamingCoachingPage() {
         <button
           type="button"
           onClick={() => setActiveTab('weapons')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'weapons'
               ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
               : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
@@ -151,7 +155,7 @@ export default function GamingCoachingPage() {
         <button
           type="button"
           onClick={() => setActiveTab('timeline')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-headline-sm text-xs font-medium transition-all cursor-pointer ${
             activeTab === 'timeline'
               ? 'bg-gaming-red text-white shadow-[0_0_14px_rgba(255,0,56,0.5)]'
               : 'text-gaming-slate hover:text-gaming-white hover:bg-gaming-carbon'
@@ -184,26 +188,26 @@ export default function GamingCoachingPage() {
             </div>
 
             <div className="p-4 rounded-xl bg-gaming-carbon border border-gaming-border space-y-2">
-              <span className="font-label-sm text-label-sm text-gaming-red-bright uppercase font-mono font-bold flex items-center gap-1.5">
+              <span className="font-label-sm text-label-sm text-gaming-red-bright uppercase font-mono font-medium flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[16px]">psychology</span>
                 Coach Summary &amp; Key Findings
               </span>
-              <p className="font-body-md text-body-md text-gaming-slate leading-relaxed">
+              <p className="font-body-md text-body-md text-gaming-slate leading-relaxed font-normal">
                 {active.summary || 'Player exhibited exceptional aim stability (46.8% accuracy) during opening phase. Micro-stutters occurred 2 times in East Corridor during volumetric smoke rendering, but zero frame drops were caused by local NPU AI background telemetry.'}
               </p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm font-mono text-center">
               <div className="p-space-sm bg-gaming-carbon rounded-xl border border-gaming-border">
-                <span className="text-gaming-slate text-[10px] uppercase block">Engagement Winrate</span>
+                <span className="text-gaming-slate text-[10px] uppercase block font-medium">Engagement Winrate</span>
                 <span className="text-gaming-white font-bold text-lg">78.4%</span>
               </div>
               <div className="p-space-sm bg-gaming-carbon rounded-xl border border-gaming-border">
-                <span className="text-gaming-slate text-[10px] uppercase block">First Blood Rate</span>
+                <span className="text-gaming-slate text-[10px] uppercase block font-medium">First Blood Rate</span>
                 <span className="text-gaming-red-bright font-bold text-lg">62.5%</span>
               </div>
               <div className="p-space-sm bg-gaming-carbon rounded-xl border border-gaming-border">
-                <span className="text-gaming-slate text-[10px] uppercase block">Clutch Conversions</span>
+                <span className="text-gaming-slate text-[10px] uppercase block font-medium">Clutch Conversions</span>
                 <span className="text-emerald-400 font-bold text-lg">3 / 4 (75%)</span>
               </div>
             </div>
@@ -216,13 +220,13 @@ export default function GamingCoachingPage() {
                 <span className="font-headline-sm text-headline-sm text-gaming-white font-bold">
                   Tactical Radar Attributes
                 </span>
-                <span className="text-[10px] font-mono text-gaming-slate">Normalized 0-100</span>
+                <span className="text-[10px] font-mono text-gaming-slate font-normal">Normalized 0-100</span>
               </div>
 
               <div className="space-y-3 font-mono text-xs">
                 <div>
                   <div className="flex items-center justify-between text-gaming-slate mb-1">
-                    <span>Aim Accuracy</span>
+                    <span className="font-medium">Aim Accuracy</span>
                     <span className="text-gaming-white font-bold">92 / 100</span>
                   </div>
                   <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
@@ -232,7 +236,7 @@ export default function GamingCoachingPage() {
 
                 <div>
                   <div className="flex items-center justify-between text-gaming-slate mb-1">
-                    <span>Positioning &amp; Cover</span>
+                    <span className="font-medium">Positioning &amp; Cover</span>
                     <span className="text-gaming-white font-bold">78 / 100</span>
                   </div>
                   <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
@@ -242,7 +246,7 @@ export default function GamingCoachingPage() {
 
                 <div>
                   <div className="flex items-center justify-between text-gaming-slate mb-1">
-                    <span>Retreat Discipline</span>
+                    <span className="font-medium">Retreat Discipline</span>
                     <span className="text-gaming-red-bright font-bold">44 / 100</span>
                   </div>
                   <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
@@ -252,7 +256,7 @@ export default function GamingCoachingPage() {
 
                 <div>
                   <div className="flex items-center justify-between text-gaming-slate mb-1">
-                    <span>Resource Management</span>
+                    <span className="font-medium">Resource Management</span>
                     <span className="text-gaming-white font-bold">85 / 100</span>
                   </div>
                   <div className="w-full h-1.5 bg-gaming-carbon rounded-full overflow-hidden">
@@ -262,8 +266,8 @@ export default function GamingCoachingPage() {
               </div>
             </div>
 
-            <div className="p-3 rounded-lg bg-gaming-carbon border border-gaming-red/30 text-xs font-mono text-gaming-slate">
-              <strong className="text-gaming-red-bright uppercase block mb-1">Key Growth Vector:</strong>
+            <div className="p-3 rounded-lg bg-gaming-carbon border border-gaming-red/30 text-xs font-mono text-gaming-slate font-normal">
+              <strong className="text-gaming-red-bright uppercase block mb-1 font-medium">Key Growth Vector:</strong>
               Increase retreat discipline when health dips below 30% HP.
             </div>
           </div>
@@ -284,7 +288,7 @@ export default function GamingCoachingPage() {
                 Tactical Mistakes &amp; Critical Death Analysis
               </h2>
             </div>
-            <span className="font-label-sm text-label-sm text-gaming-slate font-mono">
+            <span className="font-label-sm text-label-sm text-gaming-slate font-mono font-normal">
               3 Recurring Habits Found
             </span>
           </div>
@@ -296,14 +300,14 @@ export default function GamingCoachingPage() {
                   <span className="material-symbols-outlined text-[18px]">warning</span>
                   Over-staying in East Corridor at Low Shield (Round 07)
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gaming-red text-white font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gaming-red text-white font-medium">
                   HIGH SEVERITY
                 </span>
               </div>
-              <p className="text-xs text-gaming-slate">
+              <p className="text-xs text-gaming-slate font-normal">
                 Player took a 1v2 engagement with 28% shield while enemy squad held high ground.
               </p>
-              <div className="p-2.5 rounded-lg bg-gaming-panel border border-gaming-border text-xs text-emerald-400 font-mono">
+              <div className="p-2.5 rounded-lg bg-gaming-panel border border-gaming-border text-xs text-emerald-400 font-mono font-normal">
                 💡 Qwen Coach Advice: Rotate through B-Connector staircase to reset shield capacitor before re-engaging.
               </div>
             </div>
@@ -314,14 +318,14 @@ export default function GamingCoachingPage() {
                   <span className="material-symbols-outlined text-[18px] text-amber-400">info</span>
                   Reload Timing in Open Line of Sight (Round 11)
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-medium">
                   MODERATE SEVERITY
                 </span>
               </div>
-              <p className="text-xs text-gaming-slate">
+              <p className="text-xs text-gaming-slate font-normal">
                 Primary weapon reloaded without taking hard cover in mid-courtyard.
               </p>
-              <div className="p-2.5 rounded-lg bg-gaming-panel border border-gaming-border text-xs text-emerald-400 font-mono">
+              <div className="p-2.5 rounded-lg bg-gaming-panel border border-gaming-border text-xs text-emerald-400 font-mono font-normal">
                 💡 Qwen Coach Advice: Slide-cancel behind stone barrier before initiating full reload animation.
               </div>
             </div>
@@ -343,7 +347,7 @@ export default function GamingCoachingPage() {
                 Weapon Arsenal &amp; Recoil Telemetry Breakdown
               </h2>
             </div>
-            <span className="font-label-sm text-label-sm text-gaming-slate font-mono">
+            <span className="font-label-sm text-label-sm text-gaming-slate font-mono font-normal">
               MATCH #APX-7829-X
             </span>
           </div>
@@ -353,29 +357,29 @@ export default function GamingCoachingPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-headline-md text-headline-md text-gaming-white font-bold">Heavy Pulse Rifle</h3>
-                  <span className="font-label-sm text-label-sm text-gaming-slate font-mono">PRIMARY WEAPON • KINETIC</span>
+                  <span className="font-label-sm text-label-sm text-gaming-slate font-mono font-medium">PRIMARY WEAPON • KINETIC</span>
                 </div>
-                <span className="px-2 py-1 rounded bg-gaming-red text-white font-label-sm text-label-sm font-bold font-mono">
+                <span className="px-2 py-1 rounded bg-gaming-red text-white font-label-sm text-label-sm font-medium font-mono">
                   14 KILLS
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 my-2 font-mono text-center">
                 <div className="bg-gaming-carbon p-2 rounded border border-gaming-border">
-                  <span className="text-gaming-slate text-[10px] uppercase block">Accuracy</span>
+                  <span className="text-gaming-slate text-[10px] uppercase block font-medium">Accuracy</span>
                   <span className="text-gaming-red-bright font-bold text-[16px]">46.8%</span>
                 </div>
                 <div className="bg-gaming-carbon p-2 rounded border border-gaming-border">
-                  <span className="text-gaming-slate text-[10px] uppercase block">Headshots</span>
+                  <span className="text-gaming-slate text-[10px] uppercase block font-medium">Headshots</span>
                   <span className="text-gaming-white font-bold text-[16px]">38.2%</span>
                 </div>
                 <div className="bg-gaming-carbon p-2 rounded border border-gaming-border">
-                  <span className="text-gaming-slate text-[10px] uppercase block">Avg DPS</span>
+                  <span className="text-gaming-slate text-[10px] uppercase block font-medium">Avg DPS</span>
                   <span className="text-gaming-white font-bold text-[16px]">412 DPS</span>
                 </div>
               </div>
 
-              <p className="font-body-sm text-body-sm text-gaming-slate">
+              <p className="font-body-sm text-body-sm text-gaming-slate font-normal">
                 High precision at 25-50m range. Recommendation: Avoid prematurely swapping to secondary when magazine has &gt;8 bullets left.
               </p>
             </div>
@@ -384,29 +388,29 @@ export default function GamingCoachingPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-headline-md text-headline-md text-gaming-white font-bold">Plasma Scattergun</h3>
-                  <span className="font-label-sm text-label-sm text-gaming-slate font-mono">SECONDARY WEAPON • ENERGY</span>
+                  <span className="font-label-sm text-label-sm text-gaming-slate font-mono font-medium">SECONDARY WEAPON • ENERGY</span>
                 </div>
-                <span className="px-2 py-1 rounded bg-gaming-panel-highest text-gaming-white border border-gaming-border font-label-sm text-label-sm font-bold font-mono">
+                <span className="px-2 py-1 rounded bg-gaming-panel-highest text-gaming-white border border-gaming-border font-label-sm text-label-sm font-medium font-mono">
                   8 KILLS
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 my-2 font-mono text-center">
                 <div className="bg-gaming-carbon p-2 rounded border border-gaming-border">
-                  <span className="text-gaming-slate text-[10px] uppercase block">Accuracy</span>
+                  <span className="text-gaming-slate text-[10px] uppercase block font-medium">Accuracy</span>
                   <span className="text-gaming-red-bright font-bold text-[16px]">68.2%</span>
                 </div>
                 <div className="bg-gaming-carbon p-2 rounded border border-gaming-border">
-                  <span className="text-gaming-slate text-[10px] uppercase block">CQB Burst</span>
+                  <span className="text-gaming-slate text-[10px] uppercase block font-medium">CQB Burst</span>
                   <span className="text-gaming-white font-bold text-[16px]">820 DPS</span>
                 </div>
                 <div className="bg-gaming-carbon p-2 rounded border border-gaming-border">
-                  <span className="text-gaming-slate text-[10px] uppercase block">Kill Conversion</span>
+                  <span className="text-gaming-slate text-[10px] uppercase block font-medium">Kill Conversion</span>
                   <span className="text-gaming-white font-bold text-[16px]">91.4%</span>
                 </div>
               </div>
 
-              <p className="font-body-sm text-body-sm text-gaming-slate">
+              <p className="font-body-sm text-body-sm text-gaming-slate font-normal">
                 Devastating CQB stopping power. Perfect pairing with Qwen3 high-ground catwalk repositioning strategies.
               </p>
             </div>
@@ -426,16 +430,16 @@ export default function GamingCoachingPage() {
               </div>
               <h2 className="font-headline-lg text-gaming-white text-headline-lg font-bold">Round-by-Round Tactical Timeline</h2>
             </div>
-            <span className="font-label-sm text-label-sm text-gaming-slate font-mono">12 Rounds Logged</span>
+            <span className="font-label-sm text-label-sm text-gaming-slate font-mono font-normal">12 Rounds Logged</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-space-md">
             <div className="p-space-md rounded-xl bg-gaming-panel-high border border-gaming-border flex flex-col gap-2 hover:border-gaming-red/50 transition-all">
               <div className="flex items-center justify-between">
                 <span className="font-label-md text-label-md text-gaming-white font-bold font-mono">Round 01-04 (Early)</span>
-                <span className="px-2 py-0.5 rounded bg-gaming-panel-highest text-gaming-white border border-gaming-border font-label-sm text-label-sm font-mono">Clean Phase</span>
+                <span className="px-2 py-0.5 rounded bg-gaming-panel-highest text-gaming-white border border-gaming-border font-label-sm text-label-sm font-mono font-medium">Clean Phase</span>
               </div>
-              <p className="font-body-sm text-body-sm text-gaming-slate">
+              <p className="font-body-sm text-body-sm text-gaming-slate font-normal">
                 Controlled perimeter looting in Sector B-9. Perfect kinetic shield management. 0 deaths recorded.
               </p>
             </div>
@@ -443,9 +447,9 @@ export default function GamingCoachingPage() {
             <div className="p-space-md rounded-xl bg-gaming-panel-high border border-gaming-red/40 flex flex-col gap-2 shadow-[0_0_12px_rgba(255,0,56,0.15)]">
               <div className="flex items-center justify-between">
                 <span className="font-label-md text-label-md text-gaming-red-bright font-bold font-mono">Round 05-08 (Mid)</span>
-                <span className="px-2 py-0.5 rounded bg-gaming-red text-white font-label-sm text-label-sm font-mono font-bold">Flank Alert</span>
+                <span className="px-2 py-0.5 rounded bg-gaming-red text-white font-label-sm text-label-sm font-mono font-medium">Flank Alert</span>
               </div>
-              <p className="font-body-sm text-body-sm text-gaming-slate">
+              <p className="font-body-sm text-body-sm text-gaming-slate font-normal">
                 Hostile squad attempted East Corridor flank. NPU HUD radar gave 12s warning, allowing choke-point trap.
               </p>
             </div>
@@ -453,9 +457,9 @@ export default function GamingCoachingPage() {
             <div className="p-space-md rounded-xl bg-gaming-panel-high border border-gaming-red/40 flex flex-col gap-2 shadow-[0_0_12px_rgba(255,0,56,0.15)]">
               <div className="flex items-center justify-between">
                 <span className="font-label-md text-label-md text-gaming-red-bright font-bold font-mono">Round 09-12 (Late)</span>
-                <span className="px-2 py-0.5 rounded bg-gaming-red text-white font-label-sm text-label-sm font-mono font-bold">Victory Clutch</span>
+                <span className="px-2 py-0.5 rounded bg-gaming-red text-white font-label-sm text-label-sm font-mono font-medium">Victory Clutch</span>
               </div>
-              <p className="font-body-sm text-body-sm text-gaming-slate">
+              <p className="font-body-sm text-body-sm text-gaming-slate font-normal">
                 Final 1v2 engagement won with high-ground catwalk repositioning suggested by on-device Qwen3 coach.
               </p>
             </div>

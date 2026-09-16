@@ -19,7 +19,7 @@ interface SessionReportRowProps {
   className?: string;
 }
 
-export const SessionReportRow: React.FC<SessionReportRowProps> = ({ session, className = '' }) => {
+export const SessionReportRow: React.FC<SessionReportRowProps> = React.memo(({ session, className = '' }) => {
   const isMeeting = session.type === 'meeting';
 
   return (
@@ -43,11 +43,11 @@ export const SessionReportRow: React.FC<SessionReportRowProps> = ({ session, cla
 
         <div className="flex flex-col">
           <div className="flex items-center gap-space-xs">
-            <span className="font-headline-sm text-label-lg text-on-surface font-semibold">
+            <span className="font-headline-sm text-label-lg text-on-surface font-bold">
               {session.title}
             </span>
             <span
-              className={`px-1.5 py-0.5 rounded font-label-sm text-label-sm uppercase font-mono ${
+              className={`px-1.5 py-0.5 rounded font-label-sm text-label-sm uppercase font-mono font-medium ${
                 isMeeting
                   ? 'bg-primary/10 text-primary'
                   : 'bg-gaming-red-subtle text-gaming-red-bright border border-gaming-red/30'
@@ -77,4 +77,6 @@ export const SessionReportRow: React.FC<SessionReportRowProps> = ({ session, cla
       </div>
     </div>
   );
-};
+});
+
+SessionReportRow.displayName = 'SessionReportRow';

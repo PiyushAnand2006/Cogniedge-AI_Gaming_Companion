@@ -63,18 +63,18 @@ export default function HeroPage() {
           </Link>
 
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="hidden sm:inline text-sm text-gaming-slate hover:text-gaming-white transition-colors">
+            <Link href="/dashboard" className="hidden sm:inline text-sm text-gaming-slate hover:text-gaming-white transition-colors font-normal">
               Dashboard
             </Link>
-            <Link href="/gaming-coaching" className="hidden sm:inline text-sm text-gaming-slate hover:text-gaming-white transition-colors">
+            <Link href="/gaming-coaching" className="hidden sm:inline text-sm text-gaming-slate hover:text-gaming-white transition-colors font-normal">
               Coaching
             </Link>
-            <Link href="/benchmark" className="hidden sm:inline text-sm text-gaming-slate hover:text-gaming-white transition-colors">
+            <Link href="/benchmark" className="hidden sm:inline text-sm text-gaming-slate hover:text-gaming-white transition-colors font-normal">
               Benchmark
             </Link>
             <Link
               href="/login"
-              className="px-4 py-1.5 rounded-lg bg-gaming-red hover:bg-gaming-red-bright text-white text-sm font-semibold transition-all shadow-[0_0_12px_rgba(255,0,56,0.3)]"
+              className="px-4 py-1.5 rounded-lg bg-gaming-red hover:bg-gaming-red-bright text-white text-sm font-medium transition-all shadow-[0_0_12px_rgba(255,0,56,0.3)]"
             >
               Sign In
             </Link>
@@ -103,24 +103,24 @@ export default function HeroPage() {
           <div className="max-w-2xl">
             {/* Badge */}
             <div className="hero-stagger-1 flex items-center gap-2 mb-6">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-red/15 border border-gaming-red/30 text-gaming-red-bright text-xs font-mono font-bold uppercase tracking-wider">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-red/15 border border-gaming-red/30 text-gaming-red-bright text-xs font-mono font-medium uppercase tracking-wider">
                 <span className="w-1.5 h-1.5 rounded-full bg-gaming-red animate-pulse" />
                 Snapdragon X Elite
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gaming-panel-high/80 border border-gaming-border text-gaming-slate text-xs font-mono">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gaming-panel-high/80 border border-gaming-border text-gaming-slate text-xs font-mono font-normal">
                 100% On-Device
               </span>
             </div>
 
             {/* Headline */}
-            <h1 className="hero-stagger-2 font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tighter leading-[0.9] mb-6">
+            <h1 className="hero-stagger-2 font-display text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tighter leading-[0.9] mb-6">
               YOUR AI
               <br />
               <span className="text-gaming-red">GAMING EDGE</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="hero-stagger-3 text-lg sm:text-xl text-gaming-slate leading-relaxed max-w-lg mb-10">
+            <p className="hero-stagger-3 text-lg sm:text-xl text-gaming-slate leading-relaxed max-w-lg mb-10 font-normal">
               On-device NPU copilot that coaches you in real-time — zero FPS drop, zero cloud, zero compromise.
             </p>
 
@@ -129,7 +129,7 @@ export default function HeroPage() {
               <button
                 type="button"
                 onClick={launchOverlay}
-                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gaming-red hover:bg-gaming-red-bright text-white font-bold text-sm tracking-wide transition-all shadow-[0_4px_24px_rgba(255,0,56,0.4)] hover:shadow-[0_8px_36px_rgba(255,0,56,0.6)] cursor-pointer"
+                className="group inline-flex items-center gap-2.5 px-7 py-3.5 rounded-xl bg-gaming-red hover:bg-gaming-red-bright text-white font-medium text-sm tracking-wide transition-all shadow-[0_4px_24px_rgba(255,0,56,0.4)] hover:shadow-[0_8px_36px_rgba(255,0,56,0.6)] cursor-pointer"
               >
                 <span className="material-symbols-outlined text-[20px]">sports_esports</span>
                 <span>Launch Overlay</span>
@@ -138,7 +138,7 @@ export default function HeroPage() {
 
               <Link
                 href="/dashboard"
-                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-transparent border border-gaming-border hover:border-gaming-slate text-gaming-white font-semibold text-sm transition-all hover:bg-gaming-panel-high/50"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-transparent border border-gaming-border hover:border-gaming-slate text-gaming-white font-medium text-sm transition-all hover:bg-gaming-panel-high/50"
               >
                 <span className="material-symbols-outlined text-[18px] text-gaming-slate">dashboard</span>
                 <span>View Dashboard</span>
@@ -149,7 +149,7 @@ export default function HeroPage() {
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gaming-slate/50 animate-bounce">
-          <span className="text-xs font-mono uppercase tracking-widest">Scroll</span>
+          <span className="text-xs font-mono uppercase tracking-widest font-normal">Scroll</span>
           <span className="material-symbols-outlined text-[20px]">expand_more</span>
         </div>
       </section>
@@ -160,10 +160,10 @@ export default function HeroPage() {
       <section ref={howRef} className="relative w-full py-24 lg:py-32 border-t border-gaming-border/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="reveal-on-scroll text-center mb-16">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-panel-high border border-gaming-border text-gaming-slate text-xs font-mono uppercase tracking-wider mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-panel-high border border-gaming-border text-gaming-slate text-xs font-mono uppercase tracking-wider mb-4 font-medium">
               How It Works
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gaming-white font-display">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gaming-white font-display">
               Three steps. Zero latency.
             </h2>
           </div>
@@ -177,10 +177,10 @@ export default function HeroPage() {
                 </span>
               </div>
               <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-xs font-mono text-gaming-red font-bold">01</span>
+                <span className="text-xs font-mono text-gaming-red font-medium">01</span>
                 <h3 className="text-lg font-bold text-gaming-white">Vision Detection</h3>
               </div>
-              <p className="text-sm text-gaming-slate leading-relaxed max-w-xs mx-auto">
+              <p className="text-sm text-gaming-slate leading-relaxed max-w-xs mx-auto font-normal">
                 YOLO26-N reads your screen at 60 FPS via NPU — detecting enemies, map state, and weapon info with zero GPU overhead.
               </p>
             </div>
@@ -193,10 +193,10 @@ export default function HeroPage() {
                 </span>
               </div>
               <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-xs font-mono text-gaming-red font-bold">02</span>
+                <span className="text-xs font-mono text-gaming-red font-medium">02</span>
                 <h3 className="text-lg font-bold text-gaming-white">On-Device AI Analysis</h3>
               </div>
-              <p className="text-sm text-gaming-slate leading-relaxed max-w-xs mx-auto">
+              <p className="text-sm text-gaming-slate leading-relaxed max-w-xs mx-auto font-normal">
                 Qwen3-4B runs locally on Hexagon NPU, analyzing game state and generating tactical coaching in under 20ms.
               </p>
             </div>
@@ -209,10 +209,10 @@ export default function HeroPage() {
                 </span>
               </div>
               <div className="flex items-center justify-center gap-2 mb-2">
-                <span className="text-xs font-mono text-gaming-red font-bold">03</span>
+                <span className="text-xs font-mono text-gaming-red font-medium">03</span>
                 <h3 className="text-lg font-bold text-gaming-white">Real-Time Coaching</h3>
               </div>
-              <p className="text-sm text-gaming-slate leading-relaxed max-w-xs mx-auto">
+              <p className="text-sm text-gaming-slate leading-relaxed max-w-xs mx-auto font-normal">
                 Transparent HUD overlay delivers tips, warnings, and post-match debrief — all air-gapped, nothing leaves your machine.
               </p>
             </div>
@@ -228,10 +228,10 @@ export default function HeroPage() {
 
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="reveal-on-scroll text-center mb-16">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-panel-high border border-gaming-border text-gaming-slate text-xs font-mono uppercase tracking-wider mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-panel-high border border-gaming-border text-gaming-slate text-xs font-mono uppercase tracking-wider mb-4 font-medium">
               Core Features
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gaming-white font-display">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gaming-white font-display">
               Built for competitive gamers.
             </h2>
           </div>
@@ -247,10 +247,10 @@ export default function HeroPage() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-gaming-white mb-3">Push-to-Talk Q&A</h3>
-                <p className="text-sm text-gaming-slate leading-relaxed mb-5">
+                <p className="text-sm text-gaming-slate leading-relaxed mb-5 font-normal">
                   Hold a hotkey, ask anything about your current game state. Whisper STT transcribes, Qwen3-4B answers using the last N game-state snapshots as context — grounded, not hallucinated.
                 </p>
-                <div className="flex items-center gap-2 text-xs font-mono text-gaming-red-bright">
+                <div className="flex items-center gap-2 text-xs font-mono text-gaming-red-bright font-medium">
                   <span className="material-symbols-outlined text-[14px]">bolt</span>
                   <span>Sub-4s end-to-end latency</span>
                 </div>
@@ -267,10 +267,10 @@ export default function HeroPage() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-gaming-white mb-3">Cross-Session Memory</h3>
-                <p className="text-sm text-gaming-slate leading-relaxed mb-5">
+                <p className="text-sm text-gaming-slate leading-relaxed mb-5 font-normal">
                   Persistent local SQLite tracks your patterns across sessions. &ldquo;Over-extended after kill: 6 of last 8 sessions&rdquo; — the AI remembers what you forget.
                 </p>
-                <div className="flex items-center gap-2 text-xs font-mono text-gaming-red-bright">
+                <div className="flex items-center gap-2 text-xs font-mono text-gaming-red-bright font-medium">
                   <span className="material-symbols-outlined text-[14px]">trending_up</span>
                   <span>Trend lines across sessions</span>
                 </div>
@@ -287,10 +287,10 @@ export default function HeroPage() {
                   </span>
                 </div>
                 <h3 className="text-xl font-bold text-gaming-white mb-3">Live Compute Dashboard</h3>
-                <p className="text-sm text-gaming-slate leading-relaxed mb-5">
+                <p className="text-sm text-gaming-slate leading-relaxed mb-5 font-normal">
                   Real-time NPU/GPU/CPU telemetry overlay proving zero FPS impact. Watch NPU climb while GPU stays flat — your strongest demo moment.
                 </p>
-                <div className="flex items-center gap-2 text-xs font-mono text-gaming-red-bright">
+                <div className="flex items-center gap-2 text-xs font-mono text-gaming-red-bright font-medium">
                   <span className="material-symbols-outlined text-[14px]">speed</span>
                   <span>0.0 FPS contention verified</span>
                 </div>
@@ -306,10 +306,10 @@ export default function HeroPage() {
       <section className="relative w-full py-24 lg:py-32 border-t border-gaming-border/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
           <div className="reveal-on-scroll text-center mb-12">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-panel-high border border-gaming-border text-gaming-slate text-xs font-mono uppercase tracking-wider mb-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gaming-panel-high border border-gaming-border text-gaming-slate text-xs font-mono uppercase tracking-wider mb-4 font-medium">
               In Action
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-gaming-white font-display">
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-gaming-white font-display">
               See the overlay in-game.
             </h2>
           </div>
@@ -322,7 +322,7 @@ export default function HeroPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-gaming-carbon/80 via-transparent to-transparent" />
             <div className="absolute bottom-6 left-6 flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gaming-panel/90 backdrop-blur-sm border border-gaming-border text-xs text-gaming-white font-mono">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gaming-panel/90 backdrop-blur-sm border border-gaming-border text-xs text-gaming-white font-mono font-medium">
                 <span className="w-2 h-2 rounded-full bg-gaming-red animate-pulse" />
                 Live AI Overlay • 0% GPU Impact
               </span>
@@ -336,7 +336,7 @@ export default function HeroPage() {
          ═══════════════════════════════════════════════════════════════════════ */}
       <section ref={techRef} className="w-full py-16 border-t border-gaming-border/50 bg-gaming-panel/20">
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          <div className="reveal-on-scroll flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-gaming-slate text-sm font-mono">
+          <div className="reveal-on-scroll flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-gaming-slate text-sm font-mono font-normal">
             <span className="flex items-center gap-2">
               <span className="material-symbols-outlined text-[16px] text-gaming-red">developer_board</span>
               Snapdragon X Elite
@@ -378,7 +378,7 @@ export default function HeroPage() {
                 Cogni<span className="text-gaming-red">Edge</span>
               </span>
             </Link>
-            <p className="text-xs text-gaming-slate font-mono">
+            <p className="text-xs text-gaming-slate font-mono font-normal">
               Built for Snapdragon 2026 Hackathon • 100% On-Device • Air-Gapped Sovereign AI
             </p>
           </div>

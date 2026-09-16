@@ -15,7 +15,7 @@ interface HardwareCardProps {
   provenance?: 'MEASURED' | 'ESTIMATED' | 'REFERENCE' | 'DEMO';
 }
 
-export const HardwareCard: React.FC<HardwareCardProps> = ({
+export const HardwareCard: React.FC<HardwareCardProps> = React.memo(({
   gpuName = 'DirectX 12 Primary GPU',
   gpuUsage = 88.4,
   gpuTemp = 72.0,
@@ -43,7 +43,7 @@ export const HardwareCard: React.FC<HardwareCardProps> = ({
             Snapdragon X Elite &amp; Hardware Telemetry Engine
           </span>
         </div>
-        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gaming-carbon text-gaming-red-bright border border-gaming-red/30">
+        <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-gaming-carbon text-gaming-red-bright border border-gaming-red/30">
           PROVENANCE: {provenance}
         </span>
       </div>
@@ -51,7 +51,7 @@ export const HardwareCard: React.FC<HardwareCardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* GPU Block */}
         <div className="p-3.5 rounded-xl bg-gaming-carbon border border-gaming-border space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center justify-between text-xs font-mono font-medium">
             <span className="text-gaming-slate truncate max-w-[150px]">{gpuName}</span>
             <span className="text-gaming-red-bright font-bold">{safeGpuUsage.toFixed(1)}%</span>
           </div>
@@ -61,15 +61,15 @@ export const HardwareCard: React.FC<HardwareCardProps> = ({
               style={{ width: `${Math.min(safeGpuUsage, 100)}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-gaming-slate pt-1">
-            <span>Temp: <strong className="text-gaming-white">{safeGpuTemp.toFixed(0)}°C</strong></span>
-            <span>VRAM: <strong className="text-gaming-white">{safeVramUsed.toFixed(1)} / {safeVramTotal.toFixed(1)} GB</strong></span>
+          <div className="flex items-center justify-between text-[11px] font-mono text-gaming-slate pt-1 font-normal">
+            <span>Temp: <strong className="text-gaming-white font-medium">{safeGpuTemp.toFixed(0)}°C</strong></span>
+            <span>VRAM: <strong className="text-gaming-white font-medium">{safeVramUsed.toFixed(1)} / {safeVramTotal.toFixed(1)} GB</strong></span>
           </div>
         </div>
 
         {/* CPU Block */}
         <div className="p-3.5 rounded-xl bg-gaming-carbon border border-gaming-border space-y-2">
-          <div className="flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center justify-between text-xs font-mono font-medium">
             <span className="text-gaming-slate">{cpuCores} Core Host CPU</span>
             <span className="text-gaming-white font-bold">{safeCpuUsage.toFixed(1)}%</span>
           </div>
@@ -79,17 +79,17 @@ export const HardwareCard: React.FC<HardwareCardProps> = ({
               style={{ width: `${Math.min(safeCpuUsage, 100)}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-[11px] font-mono text-gaming-slate pt-1">
-            <span>Scheduling: <strong className="text-gaming-white">DirectX 12 Hook</strong></span>
-            <span>Process: <strong className="text-gaming-white">Zero Overhead</strong></span>
+          <div className="flex items-center justify-between text-[11px] font-mono text-gaming-slate pt-1 font-normal">
+            <span>Scheduling: <strong className="text-gaming-white font-medium">DirectX 12 Hook</strong></span>
+            <span>Process: <strong className="text-gaming-white font-medium">Zero Overhead</strong></span>
           </div>
         </div>
 
         {/* NPU Block */}
         <div className="p-3.5 rounded-xl bg-gaming-carbon border border-gaming-red/30 space-y-2 relative overflow-hidden">
           <div className="flex items-center justify-between text-xs font-mono">
-            <span className="text-gaming-red-bright font-bold truncate max-w-[150px]">{npuName}</span>
-            <span className={clsx('text-[10px] font-bold px-1.5 py-0.2 rounded font-mono', npuAvailable ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400')}>
+            <span className="text-gaming-red-bright font-medium truncate max-w-[150px]">{npuName}</span>
+            <span className={clsx('text-[10px] font-medium px-1.5 py-0.2 rounded font-mono', npuAvailable ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400')}>
               {npuAvailable ? 'NPU ACTIVE' : 'EMULATED'}
             </span>
           </div>
@@ -107,4 +107,6 @@ export const HardwareCard: React.FC<HardwareCardProps> = ({
       </div>
     </div>
   );
-};
+});
+
+HardwareCard.displayName = 'HardwareCard';

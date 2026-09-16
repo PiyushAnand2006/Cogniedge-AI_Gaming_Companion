@@ -33,7 +33,7 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = React.useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch('http://127.0.0.1:8088/settings', {
@@ -50,9 +50,9 @@ export default function SettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [settings]);
 
-  const handleClearMemory = async () => {
+  const handleClearMemory = React.useCallback(async () => {
     if (confirm('Are you sure you want to clear local SQLite session history? This will reset all player habits and coaching correlations.')) {
       try {
         await fetch('http://127.0.0.1:8088/memory/clear', { method: 'POST' });
@@ -61,7 +61,7 @@ export default function SettingsPage() {
         console.error(e);
       }
     }
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gaming-bg text-gaming-white pt-20 pb-16 px-gutter-desktop max-w-[1280px] mx-auto flex flex-col gap-space-lg font-sans">
@@ -69,17 +69,17 @@ export default function SettingsPage() {
       <div className="p-space-lg rounded-2xl bg-gaming-panel border border-gaming-border shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-space-md clip-chamfer-tl-br laser-border-left">
         <div>
           <div className="flex items-center gap-space-xs mb-1 font-mono text-xs">
-            <span className="px-2 py-0.5 rounded bg-gaming-red/20 text-gaming-red-bright border border-gaming-red/40 uppercase font-bold">
+            <span className="px-2 py-0.5 rounded bg-gaming-red/20 text-gaming-red-bright border border-gaming-red/40 uppercase font-medium">
               SOVEREIGN RUNTIME CONFIGURATION
             </span>
-            <span className="text-gaming-slate">
+            <span className="text-gaming-slate font-normal">
               Built-In Qualcomm NPU Hardware Controller • 100% Offline &amp; Air-Gapped
             </span>
           </div>
           <h1 className="font-headline-lg text-headline-lg text-gaming-white font-bold tracking-tight">
             COGNIEGDE SYSTEM &amp; OVERLAY SETTINGS
           </h1>
-          <p className="font-body-md text-body-md text-gaming-slate mt-0.5">
+          <p className="font-body-md text-body-md text-gaming-slate mt-0.5 font-normal">
             All AI models (Qwen3-4B INT4, YOLO26-N, Whisper ONNX) execute from on-device local storage. Zero cloud dependency.
           </p>
         </div>
@@ -87,7 +87,7 @@ export default function SettingsPage() {
         <button
           onClick={handleSave}
           disabled={loading}
-          className="px-space-lg py-space-sm bg-gaming-red text-white font-headline-sm text-label-lg rounded-lg shadow-[0_0_18px_rgba(255,0,56,0.5)] hover:shadow-[0_0_26px_rgba(255,0,56,0.75)] hover:bg-gaming-red-bright transition-all font-bold cursor-pointer flex items-center gap-2 self-start md:self-auto"
+          className="px-space-lg py-space-sm bg-gaming-red text-white font-headline-sm text-label-lg rounded-lg shadow-[0_0_18px_rgba(255,0,56,0.5)] hover:shadow-[0_0_26px_rgba(255,0,56,0.75)] hover:bg-gaming-red-bright transition-all font-medium cursor-pointer flex items-center gap-2 self-start md:self-auto"
         >
           <span className="material-symbols-outlined text-[20px]">{saved ? 'check_circle' : 'save'}</span>
           <span>{saved ? 'SETTINGS SAVED!' : 'SAVE SETTINGS'}</span>
@@ -103,7 +103,7 @@ export default function SettingsPage() {
               Built-In On-Device AI Model Enclave
             </h2>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gaming-carbon text-emerald-400 border border-emerald-500/30 font-bold">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-gaming-carbon text-emerald-400 border border-emerald-500/30 font-medium">
             100% AIR-GAPPED // ZERO CLOUD
           </span>
         </div>
@@ -111,38 +111,38 @@ export default function SettingsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md font-mono text-xs">
           <div className="p-3.5 rounded-xl bg-gaming-carbon border border-gaming-border space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-gaming-slate text-[10px] uppercase">Tactical Reasoning</span>
-              <span className="text-emerald-400 text-[10px] font-bold">ACTIVE</span>
+              <span className="text-gaming-slate text-[10px] uppercase font-medium">Tactical Reasoning</span>
+              <span className="text-emerald-400 text-[10px] font-medium">ACTIVE</span>
             </div>
             <span className="text-gaming-white font-bold text-sm block">Qwen3-4B INT4</span>
-            <span className="text-[11px] text-gaming-slate">Snapdragon Hexagon NPU</span>
+            <span className="text-[11px] text-gaming-slate font-normal">Snapdragon Hexagon NPU</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-gaming-carbon border border-gaming-border space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-gaming-slate text-[10px] uppercase">Vision OCR / Bounding</span>
-              <span className="text-emerald-400 text-[10px] font-bold">ACTIVE</span>
+              <span className="text-gaming-slate text-[10px] uppercase font-medium">Vision OCR / Bounding</span>
+              <span className="text-emerald-400 text-[10px] font-medium">ACTIVE</span>
             </div>
             <span className="text-gaming-white font-bold text-sm block">YOLO26-N Vision</span>
-            <span className="text-[11px] text-gaming-slate">60 FPS Direct3D Surface Hook</span>
+            <span className="text-[11px] text-gaming-slate font-normal">60 FPS Direct3D Surface Hook</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-gaming-carbon border border-gaming-border space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-gaming-slate text-[10px] uppercase">Voice Recognition</span>
-              <span className="text-emerald-400 text-[10px] font-bold">ACTIVE</span>
+              <span className="text-gaming-slate text-[10px] uppercase font-medium">Voice Recognition</span>
+              <span className="text-emerald-400 text-[10px] font-medium">ACTIVE</span>
             </div>
             <span className="text-gaming-white font-bold text-sm block">Whisper ONNX</span>
-            <span className="text-[11px] text-gaming-slate">Sub-20ms Beamforming Mic</span>
+            <span className="text-[11px] text-gaming-slate font-normal">Sub-20ms Beamforming Mic</span>
           </div>
 
           <div className="p-3.5 rounded-xl bg-gaming-carbon border border-gaming-border space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-gaming-slate text-[10px] uppercase">Player Habit DB</span>
-              <span className="text-emerald-400 text-[10px] font-bold">ACTIVE</span>
+              <span className="text-gaming-slate text-[10px] uppercase font-medium">Player Habit DB</span>
+              <span className="text-emerald-400 text-[10px] font-medium">ACTIVE</span>
             </div>
             <span className="text-gaming-white font-bold text-sm block">SQLite Enclave</span>
-            <span className="text-[11px] text-gaming-slate">Local File: cogniedge.db</span>
+            <span className="text-[11px] text-gaming-slate font-normal">Local File: cogniedge.db</span>
           </div>
         </div>
       </section>
@@ -160,33 +160,33 @@ export default function SettingsPage() {
 
           <div className="space-y-3 font-mono text-xs">
             <div>
-              <label className="text-gaming-slate uppercase text-[10px] block mb-1">
+              <label className="text-gaming-slate uppercase text-[10px] block mb-1 font-medium">
                 Toggle Live HUD Overlay Hotkey
               </label>
               <input
                 type="text"
                 value={settings.overlay_hotkey}
                 onChange={(e) => setSettings({ ...settings, overlay_hotkey: e.target.value })}
-                className="w-full py-2 px-3 rounded-lg bg-gaming-carbon border border-gaming-border text-gaming-white font-bold focus:outline-none focus:border-gaming-red"
+                className="w-full py-2 px-3 rounded-lg bg-gaming-carbon border border-gaming-border text-gaming-white font-medium focus:outline-none focus:border-gaming-red"
               />
             </div>
 
             <div>
-              <label className="text-gaming-slate uppercase text-[10px] block mb-1">
+              <label className="text-gaming-slate uppercase text-[10px] block mb-1 font-medium">
                 Push-to-Talk Tactical Voice Hotkey
               </label>
               <input
                 type="text"
                 value={settings.ptt_hotkey}
                 onChange={(e) => setSettings({ ...settings, ptt_hotkey: e.target.value })}
-                className="w-full py-2 px-3 rounded-lg bg-gaming-carbon border border-gaming-border text-gaming-white font-bold focus:outline-none focus:border-gaming-red"
+                className="w-full py-2 px-3 rounded-lg bg-gaming-carbon border border-gaming-border text-gaming-white font-medium focus:outline-none focus:border-gaming-red"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between text-gaming-slate mb-1">
-                <span className="uppercase text-[10px]">HUD Transparency Opacity</span>
-                <span className="text-gaming-white font-bold">{Math.round(settings.overlay_opacity * 100)}%</span>
+                <span className="uppercase text-[10px] font-medium">HUD Transparency Opacity</span>
+                <span className="text-gaming-white font-medium">{Math.round(settings.overlay_opacity * 100)}%</span>
               </div>
               <input
                 type="range"
@@ -200,7 +200,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="flex items-center justify-between pt-2 border-t border-gaming-border">
-              <span className="text-gaming-white">Click-Through Zero-Input Interception</span>
+              <span className="text-gaming-white font-normal">Click-Through Zero-Input Interception</span>
               <input
                 type="checkbox"
                 checked={settings.click_through_hud}
@@ -222,13 +222,13 @@ export default function SettingsPage() {
 
           <div className="space-y-3 font-mono text-xs">
             <div>
-              <label className="text-gaming-slate uppercase text-[10px] block mb-1">
+              <label className="text-gaming-slate uppercase text-[10px] block mb-1 font-medium">
                 Hexagon NPU Execution Power Mode
               </label>
               <select
                 value={settings.npu_isolation_mode}
                 onChange={(e) => setSettings({ ...settings, npu_isolation_mode: e.target.value })}
-                className="w-full py-2 px-3 rounded-lg bg-gaming-carbon border border-gaming-border text-gaming-white font-bold focus:outline-none focus:border-gaming-red"
+                className="w-full py-2 px-3 rounded-lg bg-gaming-carbon border border-gaming-border text-gaming-white font-medium focus:outline-none focus:border-gaming-red"
               >
                 <option value="Hexagon_NPU_Turbo">Hexagon NPU Turbo (Zero GPU Drop, 80 TOPS)</option>
                 <option value="Hexagon_NPU_Balanced">Hexagon NPU Balanced (Power Efficiency)</option>
@@ -237,8 +237,8 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between pt-2">
               <div>
-                <span className="text-gaming-white block font-bold">Predictive Stutter Detection</span>
-                <span className="text-[11px] text-gaming-slate font-sans">
+                <span className="text-gaming-white block font-medium">Predictive Stutter Detection</span>
+                <span className="text-[11px] text-gaming-slate font-sans font-normal">
                   Forecasts frame time variance spikes 1500ms ahead
                 </span>
               </div>
@@ -252,15 +252,15 @@ export default function SettingsPage() {
 
             <div className="pt-3 border-t border-gaming-border flex items-center justify-between">
               <div>
-                <span className="text-gaming-white block font-bold">SQLite Session Database</span>
-                <span className="text-[11px] text-gaming-slate font-sans">
+                <span className="text-gaming-white block font-medium">SQLite Session Database</span>
+                <span className="text-[11px] text-gaming-slate font-sans font-normal">
                   Reset habit mining cache &amp; advice logs
                 </span>
               </div>
               <button
                 type="button"
                 onClick={handleClearMemory}
-                className="px-3 py-1.5 rounded bg-gaming-carbon hover:bg-gaming-red hover:text-white text-gaming-slate border border-gaming-border transition-colors text-[11px] font-bold cursor-pointer"
+                className="px-3 py-1.5 rounded bg-gaming-carbon hover:bg-gaming-red hover:text-white text-gaming-slate border border-gaming-border transition-colors text-[11px] font-medium cursor-pointer"
               >
                 Reset DB
               </button>

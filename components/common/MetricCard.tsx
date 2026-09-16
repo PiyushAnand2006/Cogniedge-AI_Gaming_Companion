@@ -12,7 +12,7 @@ interface MetricCardProps {
   highlight?: boolean;
 }
 
-export const MetricCard: React.FC<MetricCardProps> = ({
+export const MetricCard: React.FC<MetricCardProps> = React.memo(({
   label,
   value,
   subValue,
@@ -24,13 +24,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const getProvenanceBadge = () => {
     switch (provenance) {
       case 'MEASURED':
-        return <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-gaming-panel-highest text-gaming-red-bright border border-gaming-red/30">MEASURED</span>;
+        return <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-gaming-panel-highest text-gaming-red-bright border border-gaming-red/30">MEASURED</span>;
       case 'DEMO':
-        return <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">DEMO</span>;
+        return <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">DEMO</span>;
       case 'ESTIMATED':
-        return <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">ESTIMATED</span>;
+        return <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30">ESTIMATED</span>;
       case 'REFERENCE':
-        return <span className="text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-400 border border-slate-500/30">REFERENCE</span>;
+        return <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-500/20 text-slate-400 border border-slate-500/30">REFERENCE</span>;
       default:
         return null;
     }
@@ -46,7 +46,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       )}
     >
       <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="text-[11px] font-mono tracking-wider uppercase text-gaming-slate flex items-center gap-1.5">
+        <span className="text-[11px] font-mono font-medium tracking-wider uppercase text-gaming-slate flex items-center gap-1.5">
           {icon && <span className="text-gaming-red">{icon}</span>}
           {label}
         </span>
@@ -60,10 +60,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
 
       {subValue && (
-        <div className={clsx('text-xs mt-1.5 font-mono flex items-center gap-1', subColor)}>
+        <div className={clsx('text-xs mt-1.5 font-mono font-normal flex items-center gap-1', subColor)}>
           {subValue}
         </div>
       )}
     </div>
   );
-};
+});
+
+MetricCard.displayName = 'MetricCard';

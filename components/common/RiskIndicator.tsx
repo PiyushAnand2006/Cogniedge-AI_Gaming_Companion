@@ -8,7 +8,7 @@ interface RiskIndicatorProps {
   factors?: string[];
 }
 
-export const RiskIndicator: React.FC<RiskIndicatorProps> = ({
+export const RiskIndicator: React.FC<RiskIndicatorProps> = React.memo(({
   probability,
   riskLevel,
   windowMs = 1500,
@@ -56,11 +56,11 @@ export const RiskIndicator: React.FC<RiskIndicatorProps> = ({
   return (
     <div className={clsx('p-4 rounded-xl border bg-gaming-panel space-y-3 clip-chamfer-sm', style.borderColor)}>
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-mono tracking-wider uppercase text-gaming-slate flex items-center gap-1.5">
+        <span className="text-[11px] font-mono font-medium tracking-wider uppercase text-gaming-slate flex items-center gap-1.5">
           <span className="material-symbols-outlined text-gaming-red text-[16px]">radar</span>
           Predictive Stutter Risk (Next {windowMs}ms)
         </span>
-        <span className={clsx('text-[10px] font-mono font-bold px-2 py-0.5 rounded', style.bgColor, style.textColor)}>
+        <span className={clsx('text-[10px] font-mono font-medium px-2 py-0.5 rounded', style.bgColor, style.textColor)}>
           {style.label}
         </span>
       </div>
@@ -69,7 +69,7 @@ export const RiskIndicator: React.FC<RiskIndicatorProps> = ({
         <span className="text-3xl font-bold text-gaming-white tracking-tight">
           {(probability * 100).toFixed(0)}%
         </span>
-        <span className="text-xs text-gaming-slate">
+        <span className="text-xs text-gaming-slate font-normal">
           Stutter probability window
         </span>
       </div>
@@ -83,10 +83,10 @@ export const RiskIndicator: React.FC<RiskIndicatorProps> = ({
 
       {factors.length > 0 && (
         <div className="pt-2 border-t border-gaming-border space-y-1">
-          <span className="text-[10px] font-mono uppercase text-gaming-slate block">Contributing Risk Factors:</span>
+          <span className="text-[10px] font-mono font-medium uppercase text-gaming-slate block">Contributing Risk Factors:</span>
           <div className="flex flex-wrap gap-1">
             {factors.map((f, i) => (
-              <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded bg-gaming-carbon text-gaming-slate border border-gaming-border">
+              <span key={i} className="text-[10px] font-mono font-normal px-2 py-0.5 rounded bg-gaming-carbon text-gaming-slate border border-gaming-border">
                 {f}
               </span>
             ))}
@@ -95,4 +95,6 @@ export const RiskIndicator: React.FC<RiskIndicatorProps> = ({
       )}
     </div>
   );
-};
+});
+
+RiskIndicator.displayName = 'RiskIndicator';

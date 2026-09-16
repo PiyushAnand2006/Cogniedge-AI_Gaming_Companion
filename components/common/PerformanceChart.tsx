@@ -5,11 +5,30 @@ interface PerformanceChartProps {
   height?: number;
 }
 
-export const PerformanceChart: React.FC<PerformanceChartProps> = ({
+export const PerformanceChart: React.FC<PerformanceChartProps> = React.memo(({
   data,
   height = 140,
 }) => {
-  if (!data || data.length === 0) {
+  const chartMetrics = React.useMemo(() => {
+    if (!data || data.length === 0) return null;
+    const maxFps = Math.max(...data.map((d) => d.fps), 160);
+    const minFps = Math.max(0, Math.min(...data.map((d) => d.fps)) - 10);
+    const range = maxFps - minFps || 1;
+
+    const points = data.map((d, i) => {
+      const x = (i / (data.length - 1 || 1)) * 100;
+      const y = 100 - ((d.fps - minFps) / range) * 100;
+      return `${x},${y}`;
+    });
+
+    const pathD = `M 0,100 L ${points.join(' L ')} L 100,100 Z`;
+    const lineD = `M ${points.join(' L ')}`;
+    const latestFps = data[data.length - 1]?.fps.toFixed(1);
+
+    return { pathD, lineD, latestFps };
+  }, [data]);
+
+  if (!chartMetrics) {
     return (
       <div
         className="flex items-center justify-center rounded-xl bg-gaming-carbon border border-gaming-border text-gaming-slate text-xs font-mono"
@@ -21,24 +40,10 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
     );
   }
 
-  const maxFps = Math.max(...data.map((d) => d.fps), 160);
-  const minFps = Math.max(0, Math.min(...data.map((d) => d.fps)) - 10);
-  const range = maxFps - minFps || 1;
-
-  // Build SVG path
-  const points = data.map((d, i) => {
-    const x = (i / (data.length - 1 || 1)) * 100;
-    const y = 100 - ((d.fps - minFps) / range) * 100;
-    return `${x},${y}`;
-  });
-
-  const pathD = `M 0,100 L ${points.join(' L ')} L 100,100 Z`;
-  const lineD = `M ${points.join(' L ')}`;
-
   return (
     <div className="p-4 rounded-xl bg-gaming-panel border border-gaming-border space-y-2 clip-chamfer-sm">
       <div className="flex items-center justify-between text-xs font-mono">
-        <span className="text-gaming-slate uppercase flex items-center gap-1.5">
+        <span className="text-gaming-slate uppercase flex items-center gap-1.5 font-medium">
           <span className="material-symbols-outlined text-gaming-red text-[16px]">show_chart</span>
           Live Frame Pacing Telemetry
         </span>
@@ -46,8 +51,8 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
           <span className="text-gaming-red-bright font-bold">
             Target: 144 FPS
           </span>
-          <span className="text-gaming-slate">
-            Current: {data[data.length - 1]?.fps.toFixed(1)} FPS
+          <span className="text-gaming-slate font-normal">
+            Current: {chartMetrics.latestFps} FPS
           </span>
         </div>
       </div>
@@ -65,9 +70,9 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
               <stop offset="100%" stopColor="#ff0038" stopOpacity="0.0" />
             </linearGradient>
           </defs>
-          <path d={pathD} fill="url(#fpsGradient)" />
+          <path d={chartMetrics.pathD} fill="url(#fpsGradient)" />
           <path
-            d={lineD}
+            d={chartMetrics.lineD}
             fill="none"
             stroke="#ff0038"
             strokeWidth="2"
@@ -89,4 +94,6 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
       </div>
     </div>
   );
-};
+});
+
+PerformanceChart.displayName = 'PerformanceChart';
