@@ -25,7 +25,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "vision"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "memory"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "core"))
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "audio"))
+
 from ai.agent import CogniEdgeAIAgent
+from ai.voice_assistant import VoiceAssistant
+from audio.tts_engine import TTSEngine
+from audio_capture import AudioCaptureManager, SystemAudioCapture
 from performance.collector import PerformanceCollector
 from vision.yolo_detector import YOLOHUDVisionDetector
 from memory.database import init_database
@@ -36,7 +41,9 @@ from core.events import event_bus
 from core.config import config_manager
 from screen_capture import ScreenCaptureWorker
 from whisper_bridge import WhisperSTTBridge
-from audio_capture import SystemAudioCapture
+from game_analyzer import GameAnalyzer, GameAnalyzerWorker, GameProfile
+from performance.hardware_tier import hardware_tier_detector, get_tier_configuration
+from ai.model_manager import model_manager
 
 # Initialize database
 init_database()
@@ -72,12 +79,34 @@ pattern_engine.seed_initial_patterns_if_empty()
 advice_tracker.seed_initial_effectiveness_if_empty()
 
 # Workers
-screen_capture = ScreenCaptureWorker(capture_fps=cfg.get("vision_capture_fps", 3.0))
+screen_capture = ScreenCaptureWorker(
+    capture_fps=cfg.get("vision_capture_fps", 2.5),
+    hardware_tier=hardware_tier_detector.current_tier
+)
 whisper_bridge = WhisperSTTBridge()
-audio_capture = SystemAudioCapture(sample_rate=16000, chunk_duration_s=2.0)
+tts_engine = TTSEngine(rate=1, volume=100)
+voice_assistant = VoiceAssistant(agent=ai_agent, tts=tts_engine, stt=whisper_bridge)
+audio_capture = AudioCaptureManager(sample_rate=16000, chunk_duration_s=2.0)
 
 # Start performance background collector
 perf_collector.start()
+
+# Game Analyzer & Dynamic Classifier
+game_analyzer = GameAnalyzer(ai_agent=ai_agent)
+
+def _handle_game_change(new_profile: GameProfile, old_title: Optional[str]):
+    global active_session_id
+    event_bus.publish_sync("game_changed", {
+        "new_game": new_profile.to_dict(),
+        "previous_title": old_title
+    }, severity="info")
+    try:
+        active_session_id = memory_repo.create_session(game_title=new_profile.title)
+    except Exception as e:
+        print(f"[Auto Session Switch] Error: {e}")
+
+game_analyzer_worker = GameAnalyzerWorker(game_analyzer, poll_interval_s=1.5, on_game_change=_handle_game_change)
+game_analyzer_worker.start()
 
 # Overlay process tracking
 overlay_proc: Optional[subprocess.Popen] = None
@@ -88,9 +117,14 @@ active_session_id: Optional[str] = None
 # Request Models
 # ─────────────────────────────────────────────────────────────
 
-class VoiceQueryRequest(BaseModel):
-    query_text: Optional[str] = None
-    audio_path: Optional[str] = None
+class AnalyzeGameRequest(BaseModel):
+    game_title: str
+    process_name: Optional[str] = None
+
+
+class OverrideGameRequest(BaseModel):
+    game_title: str
+
 
 
 class AskQARequest(BaseModel):
@@ -129,7 +163,7 @@ class OptimizerActionRequest(BaseModel):
 
 
 class StartSessionRequest(BaseModel):
-    game_title: str = "Cyberpunk 2077"
+    game_title: Optional[str] = None
 
 
 class StopSessionRequest(BaseModel):
@@ -145,12 +179,15 @@ class StopSessionRequest(BaseModel):
 def get_health():
     ai_status = ai_agent.get_status()
     hw = perf_collector.latest_hardware
+    active_game = game_analyzer_worker.current_profile
     return {
         "status": "online",
         "app_name": "CogniEdge AI Gaming Companion",
         "version": "3.0.0",
+        "hardware_tier": hardware_tier_detector.current_tier,
         "demo_mode": perf_collector.demo_mode,
         "ai_engine": ai_status,
+        "active_game": active_game.to_dict(),
         "hardware": {
             "gpu": hw.gpu_name,
             "cpu": f"{hw.cpu_core_count} Cores",
@@ -166,9 +203,8 @@ def get_health():
 
 @app.get("/system/telemetry")
 def get_system_telemetry():
-    """Returns actual detected hardware telemetry with explicit provenance."""
-    hw = perf_collector.latest_hardware
-    return hw.model_dump()
+    """Returns detected hardware telemetry and hardware_tier following Technical Requirements §3.1 and §6.2."""
+    return hardware_tier_detector.get_telemetry_payload()
 
 
 @app.get("/telemetry")
@@ -179,6 +215,163 @@ def get_telemetry():
         "genie_status": "Active (INT4 Qwen)",
         "whisper_status": "Ready (ONNX)"
     }
+
+
+@app.get("/ai/status")
+def get_ai_status():
+    """Returns detailed status of on-device LLM and STT providers."""
+    ai_status = ai_agent.get_status()
+    models_status = model_manager.get_status()
+    whisper_health = whisper_bridge.whispercpp.health() if whisper_bridge.whispercpp else {}
+
+    return {
+        "active_llm_provider": ai_status.get("active_provider"),
+        "llm_model_name": ai_status.get("model_name"),
+        "llm_hardware_target": ai_status.get("hardware_target"),
+        "llm_is_local": ai_status.get("is_local"),
+        "llm_provenance": ai_status.get("provenance"),
+        "llm_available": ai_status.get("is_available"),
+        "whisper_onnx_available": whisper_bridge.is_model_installed(),
+        "whisper_cpp_available": whisper_bridge.is_whispercpp_installed(),
+        "whisper_cpp_health": whisper_health,
+        "models": models_status,
+        "provenance": "MEASURED"
+    }
+
+
+@app.get("/ai/models/status")
+def get_ai_models_status():
+    """Returns local model cache and download status."""
+    return model_manager.get_status()
+
+
+@app.post("/ai/models/download/{model_type}")
+def download_model(model_type: str):
+    """Trigger background download of LLM, Whisper, or Vision model."""
+    if model_type not in ["llm", "whisper", "vision"]:
+        raise HTTPException(status_code=400, detail="Invalid model_type. Must be 'llm', 'whisper', or 'vision'.")
+
+    try:
+        if model_type == "llm":
+            path = model_manager.download_llm_model()
+        elif model_type == "whisper":
+            path = model_manager.download_whisper_model()
+        else:
+            path = model_manager.download_vision_model()
+        return {"status": "success", "model_type": model_type, "path": path}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
+
+
+# ─────────────────────────────────────────────────────────────
+# Vision & Real-Time Screen Intelligence Endpoints
+# ─────────────────────────────────────────────────────────────
+
+@app.get("/vision/status")
+def get_vision_status():
+    """Returns status of the YOLO ONNX vision engine and screen capture worker."""
+    detector_status = vision_detector.get_status()
+    capture_status = screen_capture.get_status()
+    return {
+        "vision_detector": detector_status,
+        "screen_capture": capture_status,
+        "provenance": detector_status.get("provenance", "MEASURED")
+    }
+
+
+@app.get("/vision/state")
+def get_vision_game_state():
+    """Extracts real-time structured game HUD state (HP, Ammo, Hostiles, Threat Vector)."""
+    raw_frame = screen_capture.get_latest_frame()
+    w, h = screen_capture.get_latest_frame_size()
+    active_game = game_analyzer_worker.current_profile
+
+    detections = vision_detector.detect(raw_frame, width=w, height=h)
+    game_state = vision_detector.extract_game_state(
+        detections=detections,
+        frame_bytes=raw_frame,
+        screen_size=(w, h) if w > 0 else (1920, 1080),
+        game_category=active_game.genre,
+        game_title=active_game.title
+    )
+    return game_state.model_dump()
+
+
+@app.get("/vision/detections")
+def get_vision_detections():
+    """Returns raw list of detected objects (bounding boxes and labels) for overlay rendering."""
+    raw_frame = screen_capture.get_latest_frame()
+    w, h = screen_capture.get_latest_frame_size()
+    detections = vision_detector.detect(raw_frame, width=w, height=h)
+    return [d.model_dump() for d in detections]
+
+
+@app.get("/vision/stream")
+def get_vision_mjpeg_stream():
+    """Streams live captured screen frames as MJPEG multipart stream for dashboard/diagnostics."""
+    def frame_generator():
+        while True:
+            jpeg = screen_capture.get_latest_jpeg_frame(quality=65)
+            if jpeg:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + jpeg + b'\r\n')
+            time.sleep(1.0 / max(screen_capture.capture_fps, 1.0))
+
+    return StreamingResponse(frame_generator(), media_type="multipart/x-mixed-replace; boundary=frame")
+
+
+@app.post("/vision/capture/start")
+def start_screen_capture():
+    """Starts screen capture worker with adaptive hardware-tier frame rate."""
+    screen_capture.adapt_to_hardware_tier(hardware_tier_detector.current_tier)
+    res = screen_capture.start()
+    return res
+
+
+@app.post("/vision/capture/stop")
+def stop_screen_capture():
+    """Stops background screen capture."""
+    res = screen_capture.stop()
+    return res
+
+
+# ─────────────────────────────────────────────────────────────
+# Dynamic Game Intelligence & Classification Endpoints
+# ─────────────────────────────────────────────────────────────
+
+@app.get("/game/active")
+def get_active_game():
+    """Returns real-time auto-detected game title, genre, category, and coaching focus."""
+    profile = game_analyzer_worker.current_profile
+    return profile.to_dict()
+
+
+@app.post("/game/analyze")
+def analyze_custom_game(req: AnalyzeGameRequest):
+    """Dynamically classifies any arbitrary game title (e.g. Free Fire, PUBG, Portal 2, Sudoku)."""
+    profile = game_analyzer.classify_game(req.game_title, req.process_name)
+    return profile.to_dict()
+
+
+@app.post("/game/override")
+def override_active_game(req: OverrideGameRequest):
+    """Manually lock or test the active game in the companion."""
+    global active_session_id
+    profile = game_analyzer.set_manual_override(req.game_title)
+    active_session_id = memory_repo.create_session(game_title=profile.title)
+    event_bus.publish_sync("game_changed", {
+        "new_game": profile.to_dict(),
+        "manual_override": True
+    }, severity="info")
+    return profile.to_dict()
+
+
+@app.post("/game/override/clear")
+def clear_game_override():
+    """Clears manual override and resumes automatic foreground window polling."""
+    game_analyzer.clear_manual_override()
+    profile = game_analyzer.detect_active_game()
+    return {"status": "cleared", "active_game": profile.to_dict()}
 
 
 # ─────────────────────────────────────────────────────────────
@@ -255,6 +448,7 @@ def qa_ask(req: AskQARequest):
     """
     Feature 2: Live priority voice/text Q&A.
     Answers player query using current game state, recent history, and coaching memory.
+    Dynamically adapts advice for the auto-detected game genre (FPS, Battle Royale, Puzzle, RPG).
     """
     game_state = req.current_game_state
     if not game_state:
@@ -262,19 +456,31 @@ def qa_ask(req: AskQARequest):
         extracted = vision_detector.extract_game_state(det)
         game_state = extracted.model_dump()
 
-    coaching_mem = req.relevant_coaching_memory or memory_repo.get_top_coaching_patterns(limit=5)
+    active_game = game_analyzer_worker.current_profile
+    coaching_mem = req.relevant_coaching_memory or memory_repo.get_top_coaching_patterns(limit=5, game_context=active_game.title)
     warnings = req.active_warnings or []
     if not warnings:
         pred = perf_collector.latest_prediction
         if pred.stutter_probability > 0.4:
             warnings.append(f"Predicted stutter risk ({int(pred.stutter_probability*100)}%) in next {pred.predicted_window_ms}ms")
 
-    system_prompt = (
-        "You are CogniEdge Live In-Game Tactical Assistant running locally on Qualcomm Hexagon NPU. "
-        "Provide direct, high-impact combat recommendations in 1-2 short sentences. Ground answers "
-        "in the player's health, ammo, minimap threats, and known habit weaknesses."
-    )
+    # Genre-aware dynamic system prompt
+    analysis_mode = active_game.hud_schema.get("analysis_mode", "TACTICAL_COMBAT")
+    if analysis_mode == "PROBLEM_SOLVING":
+        system_prompt = (
+            f"You are CogniEdge Problem-Solving AI Assistant for '{active_game.title}' [{active_game.genre}]. "
+            "Provide direct logical deduction hints, constraint verification, and step sequence advice without spoiling the complete solution. "
+            f"Focus Areas: {', '.join(active_game.coaching_focus)}."
+        )
+    else:
+        system_prompt = (
+            f"You are CogniEdge Live Tactical Assistant for '{active_game.title}' [{active_game.genre}] running on Snapdragon NPU. "
+            "Provide direct, high-impact tactical recommendations in 1-2 short sentences. "
+            f"Focus Areas: {', '.join(active_game.coaching_focus)}."
+        )
+
     user_prompt = (
+        f"Active Game: '{active_game.title}' [{active_game.category}]\n"
         f"Player Query: '{req.query}'\n"
         f"Game State: {json.dumps(game_state)}\n"
         f"Recent History (30s): {json.dumps(req.recent_history or [])}\n"
@@ -289,12 +495,15 @@ def qa_ask(req: AskQARequest):
     event_bus.publish_sync("qa_answered", {
         "query": req.query,
         "response": response.text,
+        "game_title": active_game.title,
         "latency_ms": latency_ms
     }, severity="info")
 
     return {
         "query": req.query,
         "response": response.text,
+        "active_game": active_game.title,
+        "genre": active_game.genre,
         "latency_ms": latency_ms,
         "provider": response.provider,
         "provenance": response.provenance,
@@ -433,15 +642,16 @@ def perf_optimize(req: PerfOptimizeRequest):
 @app.post("/session/start")
 def start_session(req: StartSessionRequest):
     global active_session_id
-    active_session_id = memory_repo.create_session(req.game_title)
+    game_title = req.game_title or game_analyzer_worker.current_profile.title
+    active_session_id = memory_repo.create_session(game_title)
     screen_capture.start()
 
     event_bus.publish_sync("session_started", {
         "session_id": active_session_id,
-        "game_title": req.game_title
+        "game_title": game_title
     }, severity="info")
 
-    return {"session_id": active_session_id, "status": "ACTIVE", "game": req.game_title}
+    return {"session_id": active_session_id, "status": "ACTIVE", "game": game_title}
 
 
 @app.post("/session/stop")
@@ -487,16 +697,19 @@ def list_sessions():
 
 @app.get("/memory/profile")
 def get_player_profile(game_title: Optional[str] = None):
-    patterns = memory_repo.get_player_patterns(game_title)
+    active_game = game_analyzer_worker.current_profile
+    target_game = game_title or active_game.title
+    patterns = memory_repo.get_player_patterns(target_game)
     eff_summary = advice_tracker.get_summary()
-    coaching_top = memory_repo.get_top_coaching_patterns(limit=5, game_context=game_title)
+    coaching_top = memory_repo.get_top_coaching_patterns(limit=5, game_context=target_game)
     opt_history = memory_repo.get_optimization_history(limit=5)
     return {
         "patterns": patterns,
         "coaching_patterns": coaching_top,
         "optimization_history": opt_history,
         "effectiveness": eff_summary,
-        "active_game": game_title or "All Games"
+        "active_game": target_game,
+        "genre": active_game.genre
     }
 
 
@@ -524,20 +737,6 @@ def detect_game_vision():
     return state.model_dump()
 
 
-@app.post("/voice/query")
-def process_voice_query(req: VoiceQueryRequest):
-    query = req.query_text
-    if not query and req.audio_path:
-        trans_res = whisper_bridge.transcribe_audio_file(req.audio_path)
-        query = trans_res.get("text", "")
-
-    if not query:
-        return {"error": "No query text or audio provided."}
-
-    # Route through /qa/ask logic
-    qa_req = AskQARequest(query=query)
-    return qa_ask(qa_req)
-
 
 # ─────────────────────────────────────────────────────────────
 # Live Event Bus (Server-Sent Events)
@@ -555,14 +754,18 @@ async def stream_live_events():
                     yield f"data: {json.dumps(event)}\n\n"
 
                 summary = perf_collector.get_live_summary()
+                active_game = game_analyzer_worker.current_profile.to_dict()
+                summary["active_game"] = active_game
+
                 heartbeat = {
                     "type": "telemetry_tick",
                     "timestamp": time.time(),
+                    "active_game": active_game,
                     "data": summary
                 }
                 yield f"data: {json.dumps(heartbeat)}\n\n"
 
-                await asyncio.sleep(0.3)
+                await asyncio.sleep(1.0)
         except asyncio.CancelledError:
             event_bus.unsubscribe(queue)
 
@@ -584,8 +787,13 @@ async def stream_live_events():
 @app.get("/overlay/state")
 def get_overlay_state():
     summary = perf_collector.get_live_summary()
+    active_game = game_analyzer_worker.current_profile
     game_state = vision_detector.extract_game_state(vision_detector.detect(None))
     return {
+        "active_game": active_game.title,
+        "genre": active_game.genre,
+        "category": active_game.category,
+        "analysis_mode": active_game.hud_schema.get("analysis_mode", "TACTICAL_COMBAT"),
         "game_fps": summary["frames"]["fps"],
         "one_pct_low": summary["frames"]["one_percent_low"],
         "gpu_usage": summary["hardware"]["gpu_usage_pct"],
@@ -694,6 +902,128 @@ def run_benchmark():
             }
         ]
     }
+
+
+# ─────────────────────────────────────────────────────────────
+# Voice Assistant & Audio Intelligence Subsystem
+# ─────────────────────────────────────────────────────────────
+
+class VoiceAskRequest(BaseModel):
+    query: str
+    speak: bool = False
+    context: Optional[Dict[str, Any]] = None
+
+class VoiceQueryRequest(BaseModel):
+    audio_base64: Optional[str] = None
+    speak: bool = False
+    context: Optional[Dict[str, Any]] = None
+
+class VoiceTTSRequest(BaseModel):
+    text: str
+    speak: bool = False
+
+class AudioCaptureStartRequest(BaseModel):
+    source: str = "microphone"
+
+
+@app.get("/voice/status")
+def get_voice_status():
+    status = voice_assistant.get_status()
+    devices = audio_capture.list_devices()
+    status["audio_devices"] = devices
+    status["capture"] = {
+        "is_running": audio_capture.is_running,
+        "device_name": audio_capture.device_name,
+        "hardware_available": audio_capture.is_available
+    }
+    return status
+
+
+@app.post("/voice/ask")
+def voice_ask(req: VoiceAskRequest):
+    ctx = req.context or {}
+    if not ctx.get("vision_hud"):
+        try:
+            ctx["vision_hud"] = vision_detector.current_state.to_dict()
+        except Exception:
+            pass
+    if not ctx.get("telemetry"):
+        try:
+            frames = perf_collector.latest_frames
+            system_m = perf_collector.latest_system
+            ctx["telemetry"] = {
+                "fps": frames.fps,
+                "frame_time_ms": frames.avg_frame_time_ms,
+                "gpu_load_pct": system_m.gpu_load_pct,
+                "cpu_bottleneck_pct": system_m.cpu_bottleneck_pct,
+            }
+        except Exception:
+            pass
+    if not ctx.get("game_info"):
+        try:
+            ctx["game_info"] = game_analyzer.current_profile.to_dict()
+        except Exception:
+            pass
+
+    return voice_assistant.process_text_query(req.query, context=ctx, speak_output=req.speak)
+
+
+@app.post("/voice/query")
+def voice_query(req: VoiceQueryRequest):
+    audio_bytes = None
+    if req.audio_base64:
+        import base64
+        try:
+            audio_bytes = base64.b64decode(req.audio_base64)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid audio_base64 data: {e}")
+    else:
+        audio_bytes = audio_capture.record_seconds(duration_s=2.5)
+
+    ctx = req.context or {}
+    if not ctx.get("vision_hud"):
+        try:
+            ctx["vision_hud"] = vision_detector.current_state.to_dict()
+        except Exception:
+            pass
+    if not ctx.get("telemetry"):
+        try:
+            frames = perf_collector.latest_frames
+            system_m = perf_collector.latest_system
+            ctx["telemetry"] = {
+                "fps": frames.fps,
+                "gpu_load_pct": system_m.gpu_load_pct,
+            }
+        except Exception:
+            pass
+
+    return voice_assistant.process_audio_query(audio_bytes, context=ctx, speak_output=req.speak)
+
+
+@app.post("/voice/tts")
+def voice_tts(req: VoiceTTSRequest):
+    wav_bytes = tts_engine.synthesize_to_wav_bytes(req.text)
+    import base64
+    audio_b64 = base64.b64encode(wav_bytes).decode("utf-8") if wav_bytes else None
+    if req.speak:
+        tts_engine.speak(req.text, async_mode=True)
+    return {
+        "text": req.text,
+        "audio_base64": audio_b64,
+        "size_bytes": len(wav_bytes) if wav_bytes else 0,
+        "offline_only": True,
+        "provenance": "MEASURED" if tts_engine.is_available else "ESTIMATED"
+    }
+
+
+@app.post("/voice/capture/start")
+def start_voice_capture(req: AudioCaptureStartRequest):
+    return audio_capture.start(source=req.source)
+
+
+@app.post("/voice/capture/stop")
+def stop_voice_capture():
+    return audio_capture.stop()
 
 
 if __name__ == "__main__":
