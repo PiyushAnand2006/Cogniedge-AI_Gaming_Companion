@@ -109,6 +109,7 @@ class HardwareTelemetryProvider:
         vram_used = 0.0
         vram_total = 8.0
         gpu_power = None
+        cpu_temp = None
 
         if self._has_nvidia_smi:
             try:
@@ -133,10 +134,31 @@ class HardwareTelemetryProvider:
             except Exception:
                 pass
 
+        # Windows WMI Fallback for AMD / Intel / Qualcomm GPUs & Thermal
+        if sys.platform == "win32":
+            if gpu_usage == 0.0:
+                try:
+                    cmd_gpu = 'powershell -NoProfile -Command "(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUCore -ErrorAction SilentlyContinue | Measure-Object -Property UtilizationPercentage -Average).Average"'
+                    out_gpu = subprocess.check_output(cmd_gpu, shell=True, text=True, timeout=1.0).strip()
+                    if out_gpu and out_gpu.replace(".", "").isdigit():
+                        gpu_usage = round(float(out_gpu), 1)
+                except Exception:
+                    pass
+
+            try:
+                cmd_temp = 'powershell -NoProfile -Command "(Get-CimInstance -Namespace root/wmi -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction SilentlyContinue | Select-Object -ExpandProperty CurrentTemperature -First 1)"'
+                out_temp = subprocess.check_output(cmd_temp, shell=True, text=True, timeout=1.0).strip()
+                if out_temp and out_temp.isdigit():
+                    raw_k = float(out_temp)
+                    if raw_k > 2732:
+                        cpu_temp = round((raw_k - 2732) / 10.0, 1)
+            except Exception:
+                pass
+
         return HardwareMetrics(
             cpu_usage_pct=round(cpu_usage, 1),
             cpu_clock_ghz=clock_ghz,
-            cpu_temp_c=None,
+            cpu_temp_c=cpu_temp,
             cpu_core_count=psutil.cpu_count(logical=True) or 8,
             cpu_peak_core_pct=round(peak_core, 1),
             gpu_name=self._gpu_name,
